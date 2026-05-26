@@ -1,1 +1,11 @@
-# TODO: Add Short Video Maker docker-compose configuration after local install research.
+services:
+  short-video-maker:
+    image: gyoridavid/short-video-maker:latest-tiny
+    container_name: content-machine-short-video-maker
+    restart: unless-stopped
+    ports:
+      - "3123:3123"
+    environment:
+      - PEXELS_API_KEY=${PEXELS_API_KEY}
+    volumes:
+      - ./data:/app/data
