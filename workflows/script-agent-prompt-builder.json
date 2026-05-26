@@ -108,11 +108,57 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        624,
+        1072,
         0
       ],
       "id": "eef5ef47-d371-4829-8d23-cc57ed777378",
       "name": "Mock Script Output"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.5",
+          "mode": "list",
+          "cachedResultName": "GPT-5.5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "5d365e59-fda2-4923-aaeb-109b075d30e9",
+      "name": "LLM Script Generator",
+      "credentials": {
+        "openAiApi": {
+          "id": "Z7Bop0DKJLVQi260",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst scriptMarkdown =\n  item.output?.[0]?.content?.[0]?.text ||\n  item.output?.content?.[0]?.text ||\n  item.text ||\n  '';\n\nreturn [\n  {\n    json: {\n      id: 'idea_001',\n      script_markdown: scriptMarkdown,\n      generated_at: new Date().toISOString(),\n      source: 'openai',\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        144
+      ],
+      "id": "48c2e38f-ac12-42ba-b12f-d3e5668779e4",
+      "name": "Normalize Script Output"
     }
   ],
   "pinData": {},
@@ -143,6 +189,28 @@
       "main": [
         [
           {
+            "node": "LLM Script Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Script Generator": {
+      "main": [
+        [
+          {
+            "node": "Normalize Script Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Script Output": {
+      "main": [
+        [
+          {
             "node": "Mock Script Output",
             "type": "main",
             "index": 0
@@ -156,8 +224,9 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "5e80522e-cabe-43d7-9bc6-8d86f062d364",
+  "versionId": "62b76f1a-3c00-4c41-a2a9-01721c9a599a",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
   },
   "id": "cJ2T7qvJT1mkZnjD",
