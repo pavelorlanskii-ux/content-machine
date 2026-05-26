@@ -198,6 +198,91 @@
       ],
       "id": "4d1f691b-39f1-4c19-836a-6bb5d171c33f",
       "name": "Build Video Pipeline JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst pipeline = item.video_pipeline_json || {};\n\nfunction cleanText(value) {\n  return String(value || '').replace(/\\s+/g, ' ').trim();\n}\n\nfunction buildSearchTerms(scene) {\n  const text = `${scene.block || ''} ${scene.content || ''} ${scene.visual || ''}`.toLowerCase();\n\n  if (text.includes('hockey') || text.includes('хоккей') || text.includes('форма')) {\n    return ['hockey', 'sports design', 'technology'];\n  }\n\n  if (text.includes('ai') || text.includes('ии') || text.includes('искусственный интеллект')) {\n    return ['artificial intelligence', 'creative process', 'technology'];\n  }\n\n  return ['sports', 'technology', 'creative process'];\n}\n\nconst scenes = Array.isArray(pipeline.scenes) ? pipeline.scenes : [];\n\nconst shortVideoScenes = scenes.map((scene) => {\n  const text =\n    cleanText(scene.content) ||\n    cleanText(scene.on_screen_text) ||\n    cleanText(pipeline.voiceover);\n\n  return {\n    text,\n    searchTerms: buildSearchTerms(scene),\n  };\n}).filter(scene => scene.text);\n\nconst fallbackScenes = [\n  {\n    text: cleanText(pipeline.voiceover) || cleanText(pipeline.title) || 'Короткое вертикальное видео для теста контент-машины.',\n    searchTerms: ['sports', 'technology', 'creative process'],\n  },\n];\n\nconst shortVideoMakerPayload = {\n  scenes: shortVideoScenes.length ? shortVideoScenes : fallbackScenes,\n  config: {\n    paddingBack: 1500,\n    music: 'excited',\n    captionPosition: 'bottom',\n    captionBackgroundColor: 'blue',\n    voice: 'af_heart',\n    orientation: 'portrait',\n    musicVolume: 'medium',\n  },\n};\n\nreturn [\n  {\n    json: {\n      id: item.id || pipeline.id || '',\n      status: 'ready_for_short_video_maker',\n      short_video_maker_payload: shortVideoMakerPayload,\n      source_video_pipeline_json: pipeline,\n      completed_at: new Date().toISOString(),\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1872,
+        0
+      ],
+      "id": "bdee36c0-a6e5-43ef-838c-391b90a3595e",
+      "name": "Build Short Video Maker Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3123/api/short-video",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "=json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "={{ $json.short_video_maker_payload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2080,
+        0
+      ],
+      "id": "7e1bf763-ca35-422d-802d-f236d5812c8b",
+      "name": "Create Short Video"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst videoId = item.videoId || '';\n\nreturn [\n  {\n    json: {\n      id: 'idea_001',\n      status: videoId ? 'short_video_generation_started' : 'short_video_generation_failed',\n      videoId,\n      status_url: videoId ? `http://host.docker.internal:3123/api/short-video/${videoId}/status` : '',\n      video_url: videoId ? `http://host.docker.internal:3123/api/short-video/${videoId}` : '',\n      browser_url: videoId ? `http://localhost:3123/video/${videoId}` : '',\n      source: 'short-video-maker',\n      created_at: new Date().toISOString(),\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2288,
+        0
+      ],
+      "id": "be97e416-23bd-4e8f-b83a-1c096eb6c4a6",
+      "name": "Normalize Short Video Response"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.status_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2496,
+        0
+      ],
+      "id": "f8029697-ee53-4fe7-9874-1b94c4490b7e",
+      "name": "Check Short Video Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const statusItem = $input.first().json;\n\n// Берём данные из предыдущего node Normalize Short Video Response\nconst normalized = $('Normalize Short Video Response').first().json;\n\nconst videoId = normalized.videoId || '';\nconst renderStatus = statusItem.status || 'unknown';\n\nreturn [\n  {\n    json: {\n      id: normalized.id || 'idea_001',\n      status: renderStatus === 'ready'\n        ? 'short_video_ready'\n        : 'short_video_not_ready',\n      render_status: renderStatus,\n      videoId,\n      status_url: normalized.status_url || '',\n      video_url: normalized.video_url || '',\n      browser_url: normalized.browser_url || '',\n      source: normalized.source || 'short-video-maker',\n      completed_at: new Date().toISOString(),\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        0
+      ],
+      "id": "6d1e4d4e-2851-4694-aafa-f3320e61e768",
+      "name": "Finalize Short Video Result"
     }
   ],
   "pinData": {},
@@ -278,6 +363,61 @@
           }
         ]
       ]
+    },
+    "Build Video Pipeline JSON": {
+      "main": [
+        [
+          {
+            "node": "Build Short Video Maker Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Short Video Maker Payload": {
+      "main": [
+        [
+          {
+            "node": "Create Short Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Short Video": {
+      "main": [
+        [
+          {
+            "node": "Normalize Short Video Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Short Video Response": {
+      "main": [
+        [
+          {
+            "node": "Check Short Video Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Short Video Status": {
+      "main": [
+        [
+          {
+            "node": "Finalize Short Video Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -285,7 +425,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "6554c4bd-7654-441d-adf5-8f23d4df739a",
+  "versionId": "c7b4aa5a-f7fb-44c5-8c8e-1f54d6349288",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
