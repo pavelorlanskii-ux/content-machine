@@ -108,8 +108,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1072,
-        0
+        1456,
+        -352
       ],
       "id": "eef5ef47-d371-4829-8d23-cc57ed777378",
       "name": "Mock Script Output"
@@ -154,11 +154,37 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1168,
-        144
+        1040,
+        0
       ],
       "id": "48c2e38f-ac12-42ba-b12f-d3e5668779e4",
       "name": "Normalize Script Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst scriptMarkdown = item.script_markdown || '';\n\nconst videoPayload = {\n  id: item.id,\n  format: 'vertical_video',\n  aspect_ratio: '9:16',\n  platform: 'reels_tiktok_shorts',\n  language: 'ru',\n  duration_seconds: 30,\n  source: item.source || 'openai',\n  generated_at: item.generated_at,\n  script_markdown: scriptMarkdown,\n  production_status: 'script_ready',\n  next_step: 'video_generation',\n  video_requirements: {\n    resolution: '1080x1920',\n    captions: true,\n    voiceover: true,\n    background_music: true,\n    safe_zones: true\n  }\n};\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      video_payload: videoPayload\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "0afa3773-459c-43c2-9542-646f54f0ca3a",
+      "name": "Build Video Payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      status: 'ready_for_video_generation',\n      video_payload: item.video_payload,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "67e7e374-21b3-4ce7-aaf8-71d953aa2b83",
+      "name": "Final Output"
     }
   ],
   "pinData": {},
@@ -211,11 +237,27 @@
       "main": [
         [
           {
-            "node": "Mock Script Output",
+            "node": "Build Video Payload",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "Build Video Payload": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Output": {
+      "main": [
+        []
       ]
     }
   },
@@ -224,7 +266,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "62b76f1a-3c00-4c41-a2a9-01721c9a599a",
+  "versionId": "3e87d810-6b4b-4a1e-8cdf-5f2f48ba55bf",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
