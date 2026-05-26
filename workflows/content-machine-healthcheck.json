@@ -1,0 +1,76 @@
+{
+  "name": "Content Machine Healthcheck",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "caa8bd84-9d97-4aa9-bd8a-2810f02727ff",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "22fa0cf7-5569-4c4b-bb7e-391582b891a4",
+              "name": "project",
+              "value": "content-machine",
+              "type": "string"
+            },
+            {
+              "id": "c97d0a05-07b5-479e-9b0c-53cd13b20beb",
+              "name": "status",
+              "value": "ok",
+              "type": "string"
+            },
+            {
+              "id": "d66c538f-b8dd-494b-b4f6-df9a25e81c5d",
+              "name": "stage",
+              "value": "n8n-healthcheck",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5912cc3f-4d38-461c-b5a1-bb8eaaf05e1a",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bee11129-ede4-41f0-884d-cdc5dbc63cca",
+  "meta": {
+    "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
+  },
+  "id": "faPRg8w8QM5DOxE9",
+  "tags": []
+}
