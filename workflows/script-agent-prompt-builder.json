@@ -185,6 +185,19 @@
       ],
       "id": "67e7e374-21b3-4ce7-aaf8-71d953aa2b83",
       "name": "Final Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst videoPayload = item.video_payload || {};\nconst scriptMarkdown = videoPayload.script_markdown || '';\n\nfunction extractSection(markdown, heading) {\n  const escapedHeading = heading.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n  const regex = new RegExp(`##\\\\s+${escapedHeading}\\\\s*\\\\n([\\\\s\\\\S]*?)(?=\\\\n##\\\\s+|$)`, 'i');\n  const match = markdown.match(regex);\n  return match ? match[1].trim() : '';\n}\n\nfunction firstNonEmptyLine(text) {\n  return text\n    .split('\\n')\n    .map(line => line.trim())\n    .filter(line => line && !line.startsWith('|') && !line.startsWith('---'))[0] || '';\n}\n\nfunction parseStructureTable(markdown) {\n  const section = extractSection(markdown, '4. Структура ролика');\n  const lines = section\n    .split('\\n')\n    .map(line => line.trim())\n    .filter(line => line.startsWith('|'));\n\n  const dataLines = lines.filter(line => {\n    return !line.includes('---') && !line.includes('Блок') && line.split('|').length >= 6;\n  });\n\n  return dataLines.map((line, index) => {\n    const cells = line\n      .split('|')\n      .map(cell => cell.trim())\n      .filter(Boolean);\n\n    return {\n      scene: index + 1,\n      block: cells[0] || '',\n      duration: cells[1] || '',\n      content: cells[2] || '',\n      visual: cells[3] || '',\n      on_screen_text: cells[4] || ''\n    };\n  });\n}\n\nfunction extractCaptions(markdown, scenes) {\n  const onScreenTextSection = extractSection(markdown, '6. On-screen text');\n\n  if (onScreenTextSection) {\n    return onScreenTextSection\n      .split('\\n')\n      .map(line => line.trim())\n      .map(line => line.replace(/^\\d+\\.\\s*/, '').replace(/^[-*]\\s*/, '').trim())\n      .filter(Boolean);\n  }\n\n  return scenes\n    .map(scene => scene.on_screen_text)\n    .filter(Boolean);\n}\n\nconst scenes = parseStructureTable(scriptMarkdown);\n\nconst title = firstNonEmptyLine(extractSection(scriptMarkdown, '1. Название ролика'));\nconst voiceover = extractSection(scriptMarkdown, '5. Voiceover');\nconst captions = extractCaptions(scriptMarkdown, scenes);\nconst cta = firstNonEmptyLine(extractSection(scriptMarkdown, '8. CTA'));\n\nconst videoPipelineJson = {\n  id: item.id || videoPayload.id || '',\n  title,\n  duration_seconds: videoPayload.duration_seconds || 30,\n  language: videoPayload.language || 'ru',\n  aspect_ratio: videoPayload.aspect_ratio || '9:16',\n  resolution: videoPayload.video_requirements?.resolution || '1080x1920',\n  voiceover,\n  captions,\n  scenes,\n  cta,\n  source_script_format: 'markdown'\n};\n\nreturn [\n  {\n    json: {\n      id: item.id || videoPayload.id || '',\n      status: 'ready_for_video_pipeline',\n      video_pipeline_json: videoPipelineJson,\n      source_video_payload: videoPayload,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        0
+      ],
+      "id": "4d1f691b-39f1-4c19-836a-6bb5d171c33f",
+      "name": "Build Video Pipeline JSON"
     }
   ],
   "pinData": {},
@@ -257,7 +270,13 @@
     },
     "Final Output": {
       "main": [
-        []
+        [
+          {
+            "node": "Build Video Pipeline JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
@@ -266,7 +285,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "3e87d810-6b4b-4a1e-8cdf-5f2f48ba55bf",
+  "versionId": "6554c4bd-7654-441d-adf5-8f23d4df739a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
