@@ -6,6 +6,12 @@ services:
     ports:
       - "3123:3123"
     environment:
+      - CI=true
+      - npm_config_dangerously_allow_all_builds=true
+      - PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true
       - PEXELS_API_KEY=${PEXELS_API_KEY}
     volumes:
-      - ./data:/app/data
+      - short_video_maker_data:/app/data
+
+volumes:
+  short_video_maker_data:
