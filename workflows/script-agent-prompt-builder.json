@@ -265,7 +265,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2496,
+        2720,
         0
       ],
       "id": "f8029697-ee53-4fe7-9874-1b94c4490b7e",
@@ -278,11 +278,39 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2704,
+        2944,
         0
       ],
       "id": "6d1e4d4e-2851-4694-aafa-f3320e61e768",
       "name": "Finalize Short Video Result"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        3168,
+        0
+      ],
+      "id": "37cd7a2e-448d-4386-9a8e-c3dc0957cd0f",
+      "name": "Convert Result JSON to File"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2496,
+        0
+      ],
+      "id": "851e9ca3-8660-4956-a172-84f351711384",
+      "name": "Wait for Short Video Render",
+      "webhookId": "89b5eaf8-4de5-4efe-bd8c-fd75ef9bd895"
     }
   ],
   "pinData": {},
@@ -401,7 +429,7 @@
       "main": [
         [
           {
-            "node": "Check Short Video Status",
+            "node": "Wait for Short Video Render",
             "type": "main",
             "index": 0
           }
@@ -418,6 +446,28 @@
           }
         ]
       ]
+    },
+    "Finalize Short Video Result": {
+      "main": [
+        [
+          {
+            "node": "Convert Result JSON to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Short Video Render": {
+      "main": [
+        [
+          {
+            "node": "Check Short Video Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -425,7 +475,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "c7b4aa5a-f7fb-44c5-8c8e-1f54d6349288",
+  "versionId": "2b471753-7be1-4890-8b39-7a0c606f6ec7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
