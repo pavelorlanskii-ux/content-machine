@@ -1,12 +1,10 @@
 # Higgsfield Soul API Contract
 
-Документ фиксирует текущий контракт Higgsfield Soul API для генерации keyframe images в проекте Content Machine.
+Документ фиксирует подтверждённый контракт Higgsfield Soul API для генерации keyframe images в проекте Content Machine.
 
 ## Назначение
 
-Higgsfield Soul рассматривается как первый image generation layer для создания ключевых кадров перед Higgsfield DoP Turbo.
-
-Целевая связка:
+Higgsfield Soul используется как image generation layer перед Higgsfield DoP Turbo.
 
 ```text
 scene_package
@@ -17,7 +15,7 @@ Higgsfield Soul
   ↓
 keyframe image
   ↓
-public image_url
+keyframe_url
   ↓
 Higgsfield DoP Turbo
   ↓
@@ -30,15 +28,13 @@ scene mp4
 https://platform.higgsfield.ai
 ```
 
-Переменная окружения:
-
 ```env
 HIGGSFIELD_API_BASE_URL=https://platform.higgsfield.ai
 ```
 
 ## Авторизация
 
-В API Reference для `POST /v1/text2image/soul` видны обязательные headers:
+Подтверждённые headers:
 
 ```http
 hf-api-key: <api_key_id>
@@ -46,18 +42,16 @@ hf-secret: <api_key_secret>
 Content-Type: application/json
 ```
 
-Значит для локального `.env` нужны оба значения:
+Локальные переменные:
 
 ```env
 HIGGSFIELD_API_KEY_ID=your_higgsfield_api_key_id_here
 HIGGSFIELD_API_KEY=your_higgsfield_api_key_secret_here
 ```
 
-Важное правило: реальные значения не коммитить и не отправлять в чат.
+Реальные значения не коммитить.
 
 ## Endpoints
-
-В API Reference Higgsfield Soul видны endpoints:
 
 ```http
 GET  /requests/{request_id}/status
@@ -67,7 +61,7 @@ GET  /v1/text2image/soul-styles
 POST /soul
 ```
 
-Для MVP используем основной endpoint:
+Для MVP используем:
 
 ```http
 POST /v1/text2image/soul
@@ -75,39 +69,24 @@ POST /v1/text2image/soul
 
 ## Create Soul image generation
 
-Endpoint:
-
 ```http
-POST /v1/text2image/soul
+POST https://platform.higgsfield.ai/v1/text2image/soul
 ```
 
-Полный URL:
+## Working request body
 
-```text
-https://platform.higgsfield.ai/v1/text2image/soul
-```
-
-## Request body
-
-По API Reference body содержит объект `params` и `webhook`:
+Подтверждённый рабочий body для MVP:
 
 ```json
 {
   "params": {
     "seed": null,
-    "prompt": "",
+    "prompt": "A premium cinematic keyframe for a vertical social video",
     "quality": "720p",
-    "style_id": null,
     "batch_size": 1,
     "enhance_prompt": true,
     "style_strength": 1,
-    "image_reference": {
-      "type": "image_url",
-      "image_url": ""
-    },
-    "width_and_height": "1536x1536",
-    "custom_reference_id": "",
-    "custom_reference_strength": 1
+    "width_and_height": "1152x2048"
   },
   "webhook": null
 }
@@ -115,19 +94,15 @@ https://platform.higgsfield.ai/v1/text2image/soul
 
 ## Required fields
 
-По API Reference обязательные поля:
-
 ```text
 params
-prompt
-width_and_height
+params.prompt
+params.width_and_height
 ```
 
-## Field descriptions
+## Field notes
 
 ### `params.prompt`
-
-Основной prompt для генерации keyframe.
 
 Берётся из:
 
@@ -137,32 +112,22 @@ keyframe_prompt.prompt
 
 ### `params.width_and_height`
 
-Размер изображения.
-
-Доступные значения из API Reference:
+Для вертикального видео 9:16 используем:
 
 ```text
 1152x2048
+```
+
+Другие значения из API Reference:
+
+```text
 2048x1152
 2048x1536
 1536x2048
 1344x2016
 ```
 
-Для вертикального видео 9:16 оптимально:
-
-```text
-1152x2048
-```
-
 ### `params.quality`
-
-Доступные значения:
-
-```text
-720p
-1080p
-```
 
 Для MVP:
 
@@ -170,22 +135,13 @@ keyframe_prompt.prompt
 720p
 ```
 
-Для production-тестов можно использовать:
+Для production-тестов можно проверять:
 
 ```text
 1080p
 ```
 
 ### `params.batch_size`
-
-Количество изображений.
-
-Доступные значения:
-
-```text
-1
-4
-```
 
 Для MVP:
 
@@ -195,49 +151,13 @@ keyframe_prompt.prompt
 
 ### `params.enhance_prompt`
 
-Флаг автоматического улучшения prompt.
-
 Для MVP:
 
 ```json
 "enhance_prompt": true
 ```
 
-### `params.seed`
-
-Seed для повторяемости генерации.
-
-Для MVP:
-
-```json
-"seed": null
-```
-
-### `params.style_id`
-
-Soul Style ID.
-
-Для MVP:
-
-```json
-"style_id": null
-```
-
-Список стилей можно получить через:
-
-```http
-GET /v1/text2image/soul-styles
-```
-
 ### `params.style_strength`
-
-Сила стиля.
-
-Диапазон из API Reference:
-
-```text
-0..1
-```
 
 Для MVP:
 
@@ -245,55 +165,20 @@ GET /v1/text2image/soul-styles
 "style_strength": 1
 ```
 
-### `params.image_reference`
+## Поля, которые не отправляем без значения
 
-Опциональный image reference.
+В тесте API возвращал UUID validation error, если отправлять пустые или `null` reference/style поля.
 
-Для text-to-image без reference можно передавать:
+В базовом MVP не отправляем:
 
-```json
-"image_reference": null
+```text
+style_id
+image_reference
+custom_reference_id
+custom_reference_strength
 ```
 
-или не использовать reference, если API это допускает.
-
-Если нужен reference image:
-
-```json
-"image_reference": {
-  "type": "image_url",
-  "image_url": "https://..."
-}
-```
-
-### `webhook`
-
-Для MVP:
-
-```json
-"webhook": null
-```
-
-## Example request body for Content Machine
-
-```json
-{
-  "params": {
-    "seed": null,
-    "prompt": "A premium cinematic keyframe for a vertical social video, clean high-end commercial look, controlled studio lighting, strong composition, no random logos, no broken text",
-    "quality": "720p",
-    "style_id": null,
-    "batch_size": 1,
-    "enhance_prompt": true,
-    "style_strength": 1,
-    "image_reference": null,
-    "width_and_height": "1152x2048",
-    "custom_reference_id": "",
-    "custom_reference_strength": 1
-  },
-  "webhook": null
-}
-```
+Эти поля добавлять только когда есть валидный UUID или валидный reference object.
 
 ## Example request body for `idea_001`
 
@@ -303,14 +188,10 @@ GET /v1/text2image/soul-styles
     "seed": null,
     "prompt": "A premium cinematic keyframe of a hockey jersey close-up on a design table, modern sports-tech studio, subtle AI interface glow in the background, black white teal orange accents, high-end commercial product photography, vertical 9:16, clean composition, shallow depth of field",
     "quality": "720p",
-    "style_id": null,
     "batch_size": 1,
     "enhance_prompt": true,
     "style_strength": 1,
-    "image_reference": null,
-    "width_and_height": "1152x2048",
-    "custom_reference_id": "",
-    "custom_reference_strength": 1
+    "width_and_height": "1152x2048"
   },
   "webhook": null
 }
@@ -318,34 +199,37 @@ GET /v1/text2image/soul-styles
 
 ## Create response
 
-По API Reference успешный ответ похож на общий request-response:
+Реальный успешный ответ `POST /v1/text2image/soul`:
 
 ```json
 {
-  "status": "queued",
-  "request_id": "123e4567-e89b-12d3-a456-4266141740",
-  "status_url": "https://example.com",
-  "cancel_url": "https://example.com"
+  "id": "5185f35b-6849-492d-9343-61dadcc9f97f",
+  "type": "text2image_soul",
+  "created_at": "2026-05-27T14:04:38.106870Z",
+  "jobs": [
+    {
+      "id": "ce1076ae-c22a-46bd-8cae-ec6897d8cb18",
+      "job_set_type": "text2image_soul",
+      "status": "queued",
+      "results": null
+    }
+  ]
 }
+```
+
+Для проверки статуса используем верхний `id`:
+
+```text
+request_id = response.id
 ```
 
 ## Status endpoint
 
-Endpoint:
-
 ```http
-GET /requests/{request_id}/status
-```
-
-Полный URL:
-
-```text
-https://platform.higgsfield.ai/requests/{request_id}/status
+GET https://platform.higgsfield.ai/requests/{request_id}/status
 ```
 
 ## Status values
-
-Возможные статусы:
 
 ```text
 queued
@@ -358,106 +242,67 @@ canceled
 
 ## Completed response
 
-Схема completed-response пока не подтверждена реальным request.
-
-Нужно выполнить генерацию и проверить, где возвращается URL результата.
-
-Ожидаемые варианты:
+Реальный completed-response для Soul подтверждён в n8n:
 
 ```json
 {
   "status": "completed",
-  "result_url": "https://..."
+  "request_id": "5185f35b-6849-492d-9343-61dadcc9f97f",
+  "status_url": "https://platform.higgsfield.ai/requests/5185f35b-6849-492d-9343-61dadcc9f97f/status",
+  "cancel_url": "https://platform.higgsfield.ai/requests/5185f35b-6849-492d-9343-61dadcc9f97f/cancel",
+  "images": [
+    {
+      "url": "https://d3u0tzju9qauci.cloudfront.net/..."
+    }
+  ]
 }
 ```
 
-или:
-
-```json
-{
-  "status": "completed",
-  "image_url": "https://..."
-}
-```
-
-или:
-
-```json
-{
-  "status": "completed",
-  "output": {
-    "url": "https://..."
-  }
-}
-```
-
-## Soul styles
-
-Endpoint:
-
-```http
-GET /v1/text2image/soul-styles
-```
-
-Используется для получения списка `style_id`.
-
-В MVP можно использовать:
-
-```json
-"style_id": null
-```
-
-## n8n target flow
+Внутренний mapping:
 
 ```text
-Build Keyframe Prompts
-  ↓
-Create Higgsfield Soul Image
-  ↓
-Normalize Higgsfield Soul Create Response
-  ↓
-Wait for Soul Render
-  ↓
-Check Higgsfield Request Status
-  ↓
-If queued / in_progress → wait and repeat
-  ↓
-If completed → save keyframe_url
-  ↓
-If failed / nsfw / canceled → return error
+keyframe_url = images[0].url
 ```
 
-## Connection to DoP Turbo
-
-После получения `keyframe_url` он используется как `image_url` в DoP Turbo:
+## Normalized keyframe result
 
 ```json
 {
-  "image_url": "https://...",
-  "prompt": "...",
-  "motions": ["General"],
-  "seed": null,
-  "enhance_prompt": true
+  "scene_id": "scene_01",
+  "keyframe_status": "ready",
+  "keyframe_request_id": "5185f35b-6849-492d-9343-61dadcc9f97f",
+  "keyframe_url": "https://d3u0tzju9qauci.cloudfront.net/...",
+  "source": "higgsfield-soul",
+  "completed_at": "2026-05-27T14:36:49.979Z"
 }
 ```
 
-## Open questions
+## Confirmed facts
 
-Нужно подтвердить через реальный request:
+Подтверждено реальным n8n-тестом:
 
-- exact completed response schema;
-- поле, где лежит image URL;
-- публичный ли URL результата;
-- можно ли сразу использовать этот URL в DoP Turbo;
-- нужен ли дополнительный storage layer;
-- поддерживается ли `image_reference: null`;
-- нужен ли endpoint `/soul` или достаточно `/v1/text2image/soul`.
+- env headers работают через `hf-api-key` и `hf-secret`;
+- `POST /v1/text2image/soul` создаёт request;
+- `GET /requests/{request_id}/status` возвращает completed status;
+- keyframe image URL лежит в `images[0].url`;
+- этот URL можно передать дальше в DoP Turbo.
+
+## n8n notes
+
+В n8n UI может отображаться preview-ошибка:
+
+```text
+[ERROR: access to env vars denied]
+```
+
+При этом реальное выполнение node работает, если контейнер запущен с:
+
+```env
+N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+```
 
 ## Next steps
 
-1. Добавить `HIGGSFIELD_API_KEY_ID` в `.env.example`.
-2. Создать `data/outputs/idea_001-keyframe-prompts.json`.
-3. После пополнения credits сделать тестовый Soul request.
-4. Проверить completed response.
-5. Зафиксировать поле `keyframe_url`.
-6. После этого строить n8n-цепочку Soul → DoP Turbo.
+1. Сохранить export тестового n8n workflow в `workflows/`.
+2. Добавить normalized result samples в `data/outputs`.
+3. Масштабировать Soul generation с `scene_01` на все сцены.

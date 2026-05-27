@@ -1,25 +1,23 @@
 # n8n Higgsfield Integration Plan
 
-Документ описывает план интеграции Higgsfield Soul и Higgsfield DoP Turbo в n8n workflow проекта Content Machine.
+Документ описывает подтверждённую интеграцию Higgsfield Soul и Higgsfield DoP Turbo в n8n workflow проекта Content Machine.
 
 ## Назначение
 
 Цель интеграции: заменить случайный Pexels visual layer на управляемую AI video цепочку.
 
-Целевая связка:
+Подтверждённая связка:
 
 ```text
-keyframe_prompts
+keyframe_prompt
   ↓
 Higgsfield Soul
   ↓
-keyframe_url
-  ↓
-scene_packages
+images[0].url
   ↓
 Higgsfield DoP Turbo
   ↓
-scene_video_url
+video.url
   ↓
 Final Assembly Layer
 ```
@@ -36,11 +34,11 @@ text prompt
   ↓
 Soul
   ↓
-image URL
+keyframe_url
   ↓
 DoP Turbo
   ↓
-video URL
+scene_video_url
 ```
 
 ## Требования к env
@@ -59,45 +57,38 @@ HIGGSFIELD_IMAGE_MODEL=soul
 HIGGSFIELD_VIDEO_MODEL=dop-turbo
 ```
 
-Важно: реальные ключи не коммитить.
+Для n8n Docker compose нужен доступ к root `.env`:
 
-## Входные файлы
-
-Для тестового `idea_001` используются:
-
-```text
-data/outputs/idea_001-keyframe-prompts.json
-data/outputs/idea_001-scene-packages.json
+```yaml
+env_file:
+  - ../../.env
 ```
 
-## Выходные файлы
+И доступ к env в node expressions:
 
-Планируемые результаты:
-
-```text
-data/outputs/idea_001-keyframe-results.json
-data/outputs/idea_001-higgsfield-scene-results.json
+```yaml
+environment:
+  - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
 ```
 
-Runtime-файлы, если понадобится локальное скачивание:
+Реальные ключи не коммитить.
+
+## Тестовый workflow
+
+В n8n создан тестовый workflow:
 
 ```text
-data/generated/keyframes/
-data/generated/scenes/
+Test Higgsfield Soul Scene 01
 ```
 
-## n8n workflow blocks
-
-Целевой workflow лучше собирать блоками.
+Подтверждённая цепочка:
 
 ```text
-Load Keyframe Prompts
+Manual Trigger
   ↓
 Build Soul Payload
   ↓
 Create Soul Image
-  ↓
-Normalize Soul Response
   ↓
 Wait for Soul Render
   ↓
@@ -105,13 +96,9 @@ Check Soul Status
   ↓
 Normalize Keyframe Result
   ↓
-Merge Keyframe URL with Scene Package
-  ↓
 Build DoP Payload
   ↓
 Create DoP Video
-  ↓
-Normalize DoP Response
   ↓
 Wait for DoP Render
   ↓
@@ -120,59 +107,58 @@ Check DoP Status
 Normalize Scene Video Result
 ```
 
-## Block 1. Load Keyframe Prompts
+## Block 1. Build Soul Payload
 
-Источник:
+Code node.
+
+```javascript
+return [
+  {
+    json: {
+      scene_id: "scene_01",
+      source: "keyframe-generation-layer",
+      provider: "higgsfield",
+      model: "soul",
+      soul_endpoint: "/v1/text2image/soul",
+      soul_payload: {
+        params: {
+          seed: null,
+          prompt: "A premium cinematic keyframe of a hockey jersey close-up on a design table, modern sports-tech studio, subtle AI interface glow in the background, black white teal orange accents, high-end commercial product photography, vertical 9:16, clean composition, shallow depth of field",
+          quality: "720p",
+          batch_size: 1,
+          enhance_prompt: true,
+          style_strength: 1,
+          width_and_height: "1152x2048"
+        },
+        webhook: null
+      }
+    }
+  }
+];
+```
+
+Не отправлять без значения:
 
 ```text
-/files/data/outputs/idea_001-keyframe-prompts.json
+style_id
+image_reference
+custom_reference_id
+custom_reference_strength
 ```
 
-В n8n Docker локальный путь проекта должен быть смонтирован как:
+## Block 2. Create Soul Image
+
+HTTP Request node.
 
 ```text
-content-machine/data
-  ↓
-/files/data
-```
-
-Output должен содержать массив:
-
-```json
-{
-  "keyframe_prompts": []
-}
-```
-
-## Block 2. Split Keyframe Prompts
-
-Каждый keyframe prompt должен стать отдельным item.
-
-Ожидаемый item:
-
-```json
-{
-  "scene_id": "scene_01",
-  "prompt": "...",
-  "width_and_height": "1152x2048",
-  "quality": "720p",
-  "batch_size": 1,
-  "enhance_prompt": true,
-  "style_id": null,
-  "style_strength": 1,
-  "image_reference": null,
-  "seed": null
-}
-```
-
-## Block 3. Build Soul Payload
-
-Создаёт body для `POST /v1/text2image/soul`.
-
-Target endpoint:
-
-```text
-https://platform.higgsfield.ai/v1/text2image/soul
+Method: POST
+URL: {{$env.HIGGSFIELD_API_BASE_URL + $json.soul_endpoint}}
+Authentication: None
+Send Headers: ON
+Send Body: ON
+Body Content Type: Raw
+Content Type: application/json
+Body: {{ JSON.stringify($json.soul_payload) }}
 ```
 
 Headers:
@@ -183,83 +169,30 @@ hf-secret: {{$env.HIGGSFIELD_API_KEY}}
 Content-Type: application/json
 ```
 
-Body:
+Успешный response содержит верхний `id`, который используется как request id.
 
-```json
-{
-  "params": {
-    "seed": null,
-    "prompt": "{{$json.prompt}}",
-    "quality": "{{$json.quality}}",
-    "style_id": null,
-    "batch_size": 1,
-    "enhance_prompt": true,
-    "style_strength": 1,
-    "image_reference": null,
-    "width_and_height": "{{$json.width_and_height}}",
-    "custom_reference_id": "",
-    "custom_reference_strength": 1
-  },
-  "webhook": null
-}
-```
+## Block 3. Wait for Soul Render
 
-## Block 4. Create Soul Image
-
-HTTP Request node:
+Wait node:
 
 ```text
-POST {{$env.HIGGSFIELD_API_BASE_URL}}/v1/text2image/soul
+Resume: After Time Interval
+Wait Amount: 60
+Wait Unit: Seconds
 ```
 
-Expected response:
+Позже заменить на polling loop.
 
-```json
-{
-  "status": "queued",
-  "request_id": "...",
-  "status_url": "...",
-  "cancel_url": "..."
-}
-```
+## Block 4. Check Soul Status
 
-## Block 5. Normalize Soul Response
-
-Output:
-
-```json
-{
-  "scene_id": "scene_01",
-  "keyframe_request_id": "...",
-  "keyframe_status": "queued",
-  "keyframe_status_url": "...",
-  "source": "higgsfield-soul"
-}
-```
-
-## Block 6. Wait for Soul Render
-
-Для MVP можно использовать фиксированное ожидание:
+HTTP Request node.
 
 ```text
-Wait 60 seconds
-```
-
-Дальше заменить на цикл:
-
-```text
-check status
-if queued / in_progress, wait and repeat
-if completed, continue
-if failed / nsfw / canceled, return error
-```
-
-## Block 7. Check Soul Status
-
-HTTP Request node:
-
-```text
-GET {{$env.HIGGSFIELD_API_BASE_URL}}/requests/{{$json.keyframe_request_id}}/status
+Method: GET
+URL: {{$env.HIGGSFIELD_API_BASE_URL + "/requests/" + $json.id + "/status"}}
+Authentication: None
+Send Headers: ON
+Send Body: OFF
 ```
 
 Headers:
@@ -269,51 +202,118 @@ hf-api-key: {{$env.HIGGSFIELD_API_KEY_ID}}
 hf-secret: {{$env.HIGGSFIELD_API_KEY}}
 ```
 
-Possible statuses:
-
-```text
-queued
-in_progress
-nsfw
-failed
-completed
-canceled
-```
-
-## Block 8. Normalize Keyframe Result
-
-Цель: привести ответ Higgsfield к внутреннему формату.
-
-Target normalized output:
+Completed response:
 
 ```json
 {
-  "scene_id": "scene_01",
-  "keyframe_status": "ready",
-  "keyframe_request_id": "...",
-  "keyframe_url": "https://...",
-  "source": "higgsfield-soul"
+  "status": "completed",
+  "request_id": "5185f35b-6849-492d-9343-61dadcc9f97f",
+  "images": [
+    {
+      "url": "https://d3u0tzju9qauci.cloudfront.net/..."
+    }
+  ]
 }
 ```
 
-Open question: точное поле `keyframe_url` будет известно только после реального completed-response.
-
-## Block 9. Load Scene Packages
-
-Источник:
+Mapping:
 
 ```text
-/files/data/outputs/idea_001-scene-packages.json
+keyframe_url = images[0].url
 ```
 
-Каждый scene package должен быть объединён с соответствующим `keyframe_url` по `scene_id`.
+## Block 5. Normalize Keyframe Result
 
-## Block 10. Build DoP Payload
+Code node.
 
-Target endpoint:
+```javascript
+const item = $input.first().json;
+
+if (item.status !== "completed") {
+  return [
+    {
+      json: {
+        status: "not_ready",
+        provider_status: item.status,
+        request_id: item.request_id,
+        status_url: item.status_url,
+        source: "higgsfield-soul"
+      }
+    }
+  ];
+}
+
+const keyframeUrl = item.images?.[0]?.url;
+
+if (!keyframeUrl) {
+  throw new Error("Soul completed, but images[0].url was not found");
+}
+
+return [
+  {
+    json: {
+      scene_id: "scene_01",
+      keyframe_status: "ready",
+      keyframe_request_id: item.request_id,
+      keyframe_url: keyframeUrl,
+      source: "higgsfield-soul",
+      completed_at: new Date().toISOString()
+    }
+  }
+];
+```
+
+## Block 6. Build DoP Payload
+
+Code node.
+
+```javascript
+const item = $input.first().json;
+
+if (item.keyframe_status !== "ready") {
+  throw new Error("Keyframe is not ready");
+}
+
+return [
+  {
+    json: {
+      scene_id: item.scene_id,
+      source: "higgsfield-dop-turbo",
+      provider: "higgsfield",
+      model: "dop-turbo",
+      dop_endpoint: "/higgsfield-ai/dop/turbo",
+      keyframe_url: item.keyframe_url,
+      dop_payload: {
+        seed: null,
+        prompt: "A cinematic close-up of a premium hockey jersey on a design table, modern sports-tech studio, AI interface glow in the background, black white teal orange accents, vertical 9:16, premium commercial look",
+        motions: null,
+        image_url: item.keyframe_url,
+        enhance_prompt: true
+      }
+    }
+  }
+];
+```
+
+Важное ограничение: `"motions": ["General"]` вызвал validation error. Для MVP используем:
+
+```json
+"motions": null
+```
+
+## Block 7. Create DoP Video
+
+HTTP Request node.
 
 ```text
-https://platform.higgsfield.ai/higgsfield-ai/dop/turbo
+Method: POST
+URL: {{$env.HIGGSFIELD_API_BASE_URL + $json.dop_endpoint}}
+Authentication: None
+Send Headers: ON
+Send Body: ON
+Body Content Type: Raw
+Content Type: application/json
+Body: {{ JSON.stringify($json.dop_payload) }}
 ```
 
 Headers:
@@ -324,71 +324,39 @@ hf-secret: {{$env.HIGGSFIELD_API_KEY}}
 Content-Type: application/json
 ```
 
-Body:
-
-```json
-{
-  "seed": null,
-  "prompt": "{{$json.visual_prompt}}",
-  "motions": "{{$json.motions}}",
-  "image_url": "{{$json.keyframe_url}}",
-  "enhance_prompt": true
-}
-```
-
-## Block 11. Create DoP Video
-
-HTTP Request node:
-
-```text
-POST {{$env.HIGGSFIELD_API_BASE_URL}}/higgsfield-ai/dop/turbo
-```
-
-Expected response:
+Успешный response:
 
 ```json
 {
   "status": "queued",
-  "request_id": "...",
-  "status_url": "...",
-  "cancel_url": "..."
+  "request_id": "5c5013c6-6fe8-415e-9cbf-cfca61812259",
+  "status_url": "https://platform.higgsfield.ai/requests/5c5013c6-6fe8-415e-9cbf-cfca61812259/status",
+  "cancel_url": "https://platform.higgsfield.ai/requests/5c5013c6-6fe8-415e-9cbf-cfca61812259/cancel"
 }
 ```
 
-## Block 12. Normalize DoP Response
+## Block 8. Wait for DoP Render
 
-Output:
-
-```json
-{
-  "scene_id": "scene_01",
-  "video_request_id": "...",
-  "video_status": "queued",
-  "video_status_url": "...",
-  "source": "higgsfield-dop-turbo"
-}
-```
-
-## Block 13. Wait for DoP Render
-
-Для MVP:
+Wait node:
 
 ```text
-Wait 60 seconds
+Resume: After Time Interval
+Wait Amount: 60
+Wait Unit: Seconds
 ```
 
-Для production:
+Позже заменить на polling loop.
+
+## Block 9. Check DoP Status
+
+HTTP Request node.
 
 ```text
-poll until completed / failed / nsfw / canceled
-```
-
-## Block 14. Check DoP Status
-
-HTTP Request node:
-
-```text
-GET {{$env.HIGGSFIELD_API_BASE_URL}}/requests/{{$json.video_request_id}}/status
+Method: GET
+URL: {{$env.HIGGSFIELD_API_BASE_URL + "/requests/" + $json.request_id + "/status"}}
+Authentication: None
+Send Headers: ON
+Send Body: OFF
 ```
 
 Headers:
@@ -398,21 +366,79 @@ hf-api-key: {{$env.HIGGSFIELD_API_KEY_ID}}
 hf-secret: {{$env.HIGGSFIELD_API_KEY}}
 ```
 
-## Block 15. Normalize Scene Video Result
+Completed response:
 
-Target normalized output:
+```json
+{
+  "status": "completed",
+  "request_id": "5c5013c6-6fe8-415e-9cbf-cfca61812259",
+  "video": {
+    "url": "https://cloud-cdn.higgsfield.ai/..."
+  }
+}
+```
+
+Mapping:
+
+```text
+scene_video_url = video.url
+```
+
+## Block 10. Normalize Scene Video Result
+
+Code node.
+
+```javascript
+const item = $input.first().json;
+
+if (item.status !== "completed") {
+  return [
+    {
+      json: {
+        status: "not_ready",
+        provider_status: item.status,
+        request_id: item.request_id,
+        status_url: item.status_url,
+        source: "higgsfield-dop-turbo"
+      }
+    }
+  ];
+}
+
+const sceneVideoUrl = item.video?.url;
+
+if (!sceneVideoUrl) {
+  throw new Error("DoP completed, but video.url was not found");
+}
+
+return [
+  {
+    json: {
+      scene_id: "scene_01",
+      scene_video_status: "ready",
+      video_request_id: item.request_id,
+      scene_video_url: sceneVideoUrl,
+      source: "higgsfield-dop-turbo",
+      completed_at: new Date().toISOString()
+    }
+  }
+];
+```
+
+## Confirmed result
+
+Финальный normalized output:
 
 ```json
 {
   "scene_id": "scene_01",
   "scene_video_status": "ready",
-  "video_request_id": "...",
-  "scene_video_url": "https://...",
-  "source": "higgsfield-dop-turbo"
+  "video_request_id": "5c5013c6-6fe8-415e-9cbf-cfca61812259",
+  "scene_video_url": "https://cloud-cdn.higgsfield.ai/...",
+  "source": "higgsfield-dop-turbo",
+  "completed_at": "2026-05-27T15:08:56.086Z"
 }
 ```
-
-Open question: точное поле `scene_video_url` будет известно только после реального completed-response.
 
 ## Error handling
 
@@ -437,63 +463,27 @@ Normalized error:
 }
 ```
 
-## Retry logic
+## Current notes
 
-Для MVP retry можно делать вручную.
-
-Для production:
+В n8n UI может отображаться preview-ошибка:
 
 ```text
-if keyframe failed → regenerate keyframe
-if video failed → regenerate video from same keyframe
-if nsfw → adjust prompt / negative prompt
-if style mismatch → adjust visual bible / keyframe prompt
+[ERROR: access to env vars denied]
+```
+
+При этом реальное выполнение node работает, если:
+
+```env
+N8N_BLOCK_ENV_ACCESS_IN_NODE=false
 ```
 
 ## Current blockers
 
-Пока не подтверждено:
+Осталось сделать:
 
-- exact completed response schema for Soul;
-- exact completed response schema for DoP Turbo;
-- где лежит `keyframe_url`;
-- где лежит `scene_video_url`;
-- публичны ли URL результата;
-- сколько длится generation;
-- сколько credits требуется на полный 3-scene pipeline.
-
-## Manual test required
-
-Перед полной автоматизацией нужен один тест:
-
-```text
-Soul prompt
-  ↓
-completed response
-  ↓
-keyframe_url
-  ↓
-DoP Turbo
-  ↓
-completed response
-  ↓
-scene_video_url
-```
-
-После этого можно финализировать n8n nodes.
-
-## MVP implementation order
-
-1. Создать n8n branch workflow copy.
-2. Load `idea_001-keyframe-prompts.json`.
-3. Build Soul Payload.
-4. Create Soul Image.
-5. Check Soul Status.
-6. Посмотреть completed-response.
-7. Обновить `docs/higgsfield-soul-api-contract.md`.
-8. Build DoP Payload.
-9. Create DoP Video.
-10. Check DoP Status.
-11. Посмотреть completed-response.
-12. Обновить `docs/higgsfield-api-contract.md`.
-13. Сохранить нормализованные results в `data/outputs`.
+- экспортировать тестовый n8n workflow в `workflows/`;
+- сохранить normalized result samples в `data/outputs`;
+- заменить фиксированные `Wait 60 seconds` на polling loop;
+- масштабировать pipeline с `scene_01` на все сцены;
+- проверить схему `motions` через `GET /v1/motions`;
+- интегрировать результат в Final Assembly Layer.

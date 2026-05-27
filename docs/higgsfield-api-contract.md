@@ -1,17 +1,15 @@
 # Higgsfield API Contract
 
-Документ фиксирует текущий контракт Higgsfield Cloud API для интеграции AI Video Provider в проект Content Machine.
+Документ фиксирует подтверждённый контракт Higgsfield DoP Turbo API для генерации video scene в проекте Content Machine.
 
 ## Назначение
 
-Higgsfield рассматривается как первый AI Video Provider для замены Pexels stock footage.
-
-Текущая целевая роль Higgsfield:
+Higgsfield DoP Turbo используется как AI Video Provider для генерации video scene из keyframe image.
 
 ```text
 scene_package
   ↓
-keyframe image
+keyframe_url
   ↓
 Higgsfield DoP Turbo
   ↓
@@ -26,10 +24,17 @@ Final Assembly Layer
 
 DoP Turbo работает как `image-to-video`.
 
-Это значит, что для генерации сцены через API нужен не только текстовый prompt, но и доступная по URL картинка первого кадра.
+Для генерации сцены через API нужны:
 
 ```text
-image_url + prompt + motions → video generation request
+image_url
+prompt
+```
+
+Опционально можно использовать `motions`, но для первого подтверждённого MVP-теста было использовано:
+
+```json
+"motions": null
 ```
 
 ## Base URL
@@ -38,61 +43,64 @@ image_url + prompt + motions → video generation request
 https://platform.higgsfield.ai
 ```
 
-Переменная окружения:
-
 ```env
 HIGGSFIELD_API_BASE_URL=https://platform.higgsfield.ai
 ```
 
 ## Авторизация
 
-В кабинете Higgsfield Cloud создаётся API key.
+Используются те же headers, что и для Soul:
 
-Локальная переменная:
-
-```env
-HIGGSFIELD_API_KEY=your_higgsfield_api_key_here
+```http
+hf-api-key: <api_key_id>
+hf-secret: <api_key_secret>
+Content-Type: application/json
 ```
 
-`API Key ID` пока не используется в контракте, так как в API Reference не найдено отдельного обязательного поля или header для `key_id`.
-
-Если в дальнейшем Higgsfield потребует отдельный key id, добавим:
+Локальные переменные:
 
 ```env
 HIGGSFIELD_API_KEY_ID=your_higgsfield_api_key_id_here
+HIGGSFIELD_API_KEY=your_higgsfield_api_key_secret_here
 ```
 
-## Create DoP Turbo generation
+## Endpoints
 
-Endpoint:
+```http
+GET  /requests/{request_id}/status
+POST /requests/{request_id}/cancel
+GET  /v1/motions
+POST /v1/image2video/dop
+POST /higgsfield-ai/dop/turbo
+```
+
+Для MVP используем:
 
 ```http
 POST /higgsfield-ai/dop/turbo
 ```
 
-Полный URL:
+## Create DoP Turbo generation
 
-```text
-https://platform.higgsfield.ai/higgsfield-ai/dop/turbo
+```http
+POST https://platform.higgsfield.ai/higgsfield-ai/dop/turbo
 ```
 
-## Request body
+## Working request body
 
-По API Reference доступны поля:
+Подтверждённый рабочий body:
 
 ```json
 {
   "seed": null,
-  "prompt": "",
+  "prompt": "A cinematic close-up of a premium hockey jersey on a design table, modern sports-tech studio, AI interface glow in the background, black white teal orange accents, vertical 9:16, premium commercial look",
   "motions": null,
-  "image_url": "",
+  "image_url": "https://d3u0tzju9qauci.cloudfront.net/...",
   "enhance_prompt": true
 }
 ```
 
 ## Required fields
-
-Обязательные поля:
 
 ```text
 image_url
@@ -103,189 +111,31 @@ prompt
 
 ### `image_url`
 
-Публично доступный URL первого кадра.
+Публичный URL первого кадра.
 
-Это может быть:
-
-- URL изображения из внешнего storage;
-- URL keyframe image, сгенерированного отдельной моделью;
-- временный публичный URL из storage layer.
-
-Для локальных файлов это не сработает напрямую:
+В текущем pipeline берётся из Soul completed-response:
 
 ```text
-data/assets/references/image.png
+keyframe_url = Soul images[0].url
 ```
-
-Нужно сначала получить публичный URL.
 
 ### `prompt`
 
-Основное описание движения и сцены.
+Описание движения и сцены.
 
-Берётся из `scene_package.visual_prompt`.
+Берётся из:
+
+```text
+scene_package.visual_prompt
+```
+
+или из отдельного `dop_prompt`.
 
 ### `motions`
 
-Список motion presets Higgsfield.
+Motion presets Higgsfield.
 
-Пример:
-
-```json
-"motions": ["General"]
-```
-
-Для текущего `idea_001` используется:
-
-```text
-scene_01 → General
-scene_02 → Handheld
-scene_03 → General
-```
-
-### `seed`
-
-Число для повторяемости генерации.
-
-Для MVP можно оставлять:
-
-```json
-"seed": null
-```
-
-### `enhance_prompt`
-
-Флаг автоматического улучшения prompt на стороне Higgsfield.
-
-Для MVP:
-
-```json
-"enhance_prompt": true
-```
-
-## Example request body
-
-```json
-{
-  "seed": null,
-  "prompt": "A cinematic close-up of a premium hockey jersey on a design table, modern sports-tech studio, AI interface glow in the background, black white teal orange accents, vertical 9:16, premium commercial look",
-  "motions": ["General"],
-  "image_url": "https://example.com/keyframes/idea_001-scene_01.png",
-  "enhance_prompt": true
-}
-```
-
-## Example create response
-
-По API Reference успешный ответ имеет вид:
-
-```json
-{
-  "status": "queued",
-  "request_id": "123e4567-e89b-12d3-a456-4266141740",
-  "status_url": "https://example.com",
-  "cancel_url": "https://example.com"
-}
-```
-
-## Generation statuses
-
-Возможные статусы:
-
-```text
-queued
-in_progress
-nsfw
-failed
-completed
-canceled
-```
-
-## Check generation status
-
-Endpoint:
-
-```http
-GET /requests/{request_id}/status
-```
-
-Полный URL:
-
-```text
-https://platform.higgsfield.ai/requests/{request_id}/status
-```
-
-## Example status response
-
-Текущий пример из API Reference показывает queued-ответ:
-
-```json
-{
-  "status": "queued",
-  "request_id": "123e4567-e89b-12d3-a456-4266141740",
-  "status_url": "https://example.com",
-  "cancel_url": "https://example.com"
-}
-```
-
-## Completed response
-
-Схема completed-response пока не подтверждена.
-
-Нужно выполнить реальный request и проверить, где возвращается ссылка на готовое видео.
-
-Ожидаемые возможные варианты:
-
-```json
-{
-  "status": "completed",
-  "result_url": "https://..."
-}
-```
-
-или:
-
-```json
-{
-  "status": "completed",
-  "video_url": "https://..."
-}
-```
-
-или:
-
-```json
-{
-  "status": "completed",
-  "output": {
-    "url": "https://..."
-  }
-}
-```
-
-До реального теста это остаётся open question.
-
-## Cancel generation
-
-Endpoint:
-
-```http
-POST /requests/{request_id}/cancel
-```
-
-Используется для отмены генерации.
-
-## List motions
-
-Endpoint:
-
-```http
-GET /v1/motions
-```
-
-Используется для получения списка доступных motion presets.
-
-В Playground были видны примеры:
+В Playground доступны motion presets, например:
 
 ```text
 General
@@ -301,70 +151,147 @@ Garden Bloom
 Head Tracking
 ```
 
-Для текущего MVP безопасные presets:
+В первом подтверждённом API-тесте массив строк вызвал validation error:
 
-```text
-General
-Handheld
+```json
+"motions": ["General"]
 ```
 
-## n8n target flow
+Рабочий вариант для MVP:
 
-Целевая цепочка n8n для Higgsfield:
-
-```text
-Build Scene Package
-  ↓
-Prepare Keyframe Image URL
-  ↓
-Create Higgsfield DoP Request
-  ↓
-Normalize Higgsfield Create Response
-  ↓
-Wait for Higgsfield Render
-  ↓
-Check Higgsfield Status
-  ↓
-If queued / in_progress → wait and repeat
-  ↓
-If completed → save result URL
-  ↓
-If failed / nsfw / canceled → return error
+```json
+"motions": null
 ```
 
-## Storage requirement
+Перед использованием presets нужно проверить точную схему через:
 
-Так как DoP Turbo требует `image_url`, нужен storage layer для keyframes.
+```http
+GET /v1/motions
+```
 
-Варианты:
+### `seed`
 
-1. ручной upload в Higgsfield Playground для тестов;
-2. внешний image hosting;
-3. S3-compatible storage;
-4. Cloudinary;
-5. Supabase Storage;
-6. GitHub raw для тестовых reference images;
-7. отдельный локальный сервис с публичным URL через tunnel.
+Для MVP:
 
-Для production лучше использовать S3-compatible storage или Cloudinary.
+```json
+"seed": null
+```
 
-## Current MVP limitation
+### `enhance_prompt`
 
-Пока не подтверждено:
+Для MVP:
 
-- exact authentication header;
-- completed response schema;
-- direct mp4 URL field;
-- upload endpoint for local images;
-- pricing and rate limits;
-- practical quality of DoP Turbo for hockey jersey scenes.
+```json
+"enhance_prompt": true
+```
+
+## Create response
+
+Реальный успешный ответ `POST /higgsfield-ai/dop/turbo`:
+
+```json
+{
+  "status": "queued",
+  "request_id": "5c5013c6-6fe8-415e-9cbf-cfca61812259",
+  "status_url": "https://platform.higgsfield.ai/requests/5c5013c6-6fe8-415e-9cbf-cfca61812259/status",
+  "cancel_url": "https://platform.higgsfield.ai/requests/5c5013c6-6fe8-415e-9cbf-cfca61812259/cancel"
+}
+```
+
+## Status endpoint
+
+```http
+GET https://platform.higgsfield.ai/requests/{request_id}/status
+```
+
+## Status values
+
+```text
+queued
+in_progress
+nsfw
+failed
+completed
+canceled
+```
+
+## Completed response
+
+Реальный completed-response для DoP Turbo подтверждён в n8n:
+
+```json
+{
+  "status": "completed",
+  "request_id": "5c5013c6-6fe8-415e-9cbf-cfca61812259",
+  "status_url": "https://platform.higgsfield.ai/requests/5c5013c6-6fe8-415e-9cbf-cfca61812259/status",
+  "cancel_url": "https://platform.higgsfield.ai/requests/5c5013c6-6fe8-415e-9cbf-cfca61812259/cancel",
+  "video": {
+    "url": "https://cloud-cdn.higgsfield.ai/..."
+  }
+}
+```
+
+Внутренний mapping:
+
+```text
+scene_video_url = video.url
+```
+
+## Normalized scene video result
+
+```json
+{
+  "scene_id": "scene_01",
+  "scene_video_status": "ready",
+  "video_request_id": "5c5013c6-6fe8-415e-9cbf-cfca61812259",
+  "scene_video_url": "https://cloud-cdn.higgsfield.ai/...",
+  "source": "higgsfield-dop-turbo",
+  "completed_at": "2026-05-27T15:08:56.086Z"
+}
+```
+
+## Confirmed full flow
+
+Подтверждён реальный n8n flow:
+
+```text
+Higgsfield Soul
+  ↓
+images[0].url
+  ↓
+Higgsfield DoP Turbo
+  ↓
+video.url
+```
+
+## n8n notes
+
+В n8n UI может отображаться preview-ошибка:
+
+```text
+[ERROR: access to env vars denied]
+```
+
+При этом реальное выполнение node работает, если контейнер запущен с:
+
+```env
+N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+```
+
+## Open questions
+
+Осталось проверить:
+
+- точную схему `motions` через `GET /v1/motions`;
+- можно ли безопасно использовать motion preset `General` через API;
+- срок жизни URL из `images[0].url` и `video.url`;
+- rate limits;
+- стабильность качества на разных темах;
+- поведение при batch generation.
 
 ## Next steps
 
-1. Сделать ручной test generation в Playground после пополнения credits.
-2. Проверить вкладку `Requests` после completed generation.
-3. Зафиксировать completed response schema.
-4. Выбрать keyframe storage layer.
-5. Добавить n8n node `Create Higgsfield DoP Request`.
-6. Добавить n8n node `Check Higgsfield Status`.
-7. Добавить нормализацию результата в `higgsfield_scene_result`.
+1. Сохранить export тестового n8n workflow в `workflows/`.
+2. Добавить normalized result samples в `data/outputs`.
+3. Проверить `GET /v1/motions`.
+4. Масштабировать pipeline с `scene_01` на все сцены.
