@@ -1,369 +1,325 @@
 # Script to Video Pipeline Adapter
 
-Документ описывает адаптер, который преобразует `script_markdown` в строгий JSON для видеопайплайна.
+Документ описывает преобразование сценария и `video_payload` в структуру, пригодную для видеогенерации.
 
 ## Назначение
 
-`script_markdown` удобен для человека, но видеогенератору нужна более строгая структура данных.
+Адаптер нужен, чтобы перевести результат Script Agent в формат, который дальше может использоваться видеосборщиком.
 
-Адаптер нужен как промежуточный слой между Script Agent и Video Generation Service.
-
-Поток:
+Текущая цепочка:
 
 ```text
-Script Agent
-  ↓
 script_markdown
   ↓
-Script to Video Pipeline Adapter
+video_payload
   ↓
 video_pipeline_json
   ↓
-Video Generation Service
-```
+short_video_maker_payload
+  ↓
+Short Video Maker API
+  ↓
+generated mp4
+Входные данные
 
-## Входные данные
+На вход адаптер получает video_payload.
 
-Адаптер принимает объект из финального выхода Script Agent workflow:
+Пример:
 
-```json
 {
   "id": "idea_001",
-  "status": "ready_for_video_generation",
+  "status": "ready_for_video_pipeline",
   "video_payload": {
     "id": "idea_001",
-    "format": "vertical_video",
-    "aspect_ratio": "9:16",
-    "platform": "reels_tiktok_shorts",
-    "language": "ru",
+    "source": "script-agent",
+    "script_format": "markdown",
+    "script_markdown": "...",
+    "platform": "Reels",
     "duration_seconds": 30,
-    "source": "openai",
-    "generated_at": "2026-05-26T14:10:12.143Z",
-    "production_status": "script_ready",
-    "next_step": "video_generation",
-    "video_requirements": {
-      "resolution": "1080x1920",
-      "captions": true,
-      "voiceover": true,
-      "background_music": true,
-      "safe_zones": true
-    },
-    "script_markdown": "..."
-  },
-  "completed_at": "2026-05-26T14:10:12.154Z"
-}
-```
-
-## Выходные данные
-
-Адаптер должен вернуть объект:
-
-```json
-{
-  "id": "idea_001",
-  "status": "ready_for_video_pipeline",
-  "video_pipeline_json": {
-    "id": "idea_001",
-    "title": "ИИ-дизайн формы за 30 секунд",
-    "duration_seconds": 30,
-    "language": "ru",
-    "aspect_ratio": "9:16",
-    "resolution": "1080x1920",
-    "voiceover": "...",
-    "captions": [
-      "Форма клуба за 30 секунд",
-      "Старт: референс + стиль клуба",
-      "1 идея → 10 вариантов"
-    ],
-    "scenes": [
-      {
-        "scene": 1,
-        "block": "Hook",
-        "duration": "0-3 сек",
-        "content": "Сильное заявление про скорость создания формы",
-        "visual": "Быстрая смена кадров: пустая форма → референсы → готовый дизайн",
-        "on_screen_text": "Форма клуба за 30 секунд"
-      }
-    ],
-    "cta": "Сохрани, если хочешь быстрее придумывать дизайн для спорта и брендов.",
-    "source_script_format": "markdown"
+    "language": "ru"
   }
 }
-```
+Первый уровень преобразования
 
-## Целевые поля `video_pipeline_json`
+Из video_payload.script_markdown формируется video_pipeline_json.
 
-| Поле | Тип | Описание |
-|---|---|---|
-| `id` | string | ID ролика |
-| `title` | string | Название ролика |
-| `duration_seconds` | number | Плановая длительность |
-| `language` | string | Язык ролика |
-| `aspect_ratio` | string | Соотношение сторон |
-| `resolution` | string | Целевое разрешение |
-| `voiceover` | string | Полный текст озвучки |
-| `captions` | array | Список экранных надписей |
-| `scenes` | array | Массив сцен |
-| `cta` | string | Финальный призыв к действию |
-| `source_script_format` | string | Исходный формат сценария |
+Цель video_pipeline_json: выделить из сценария структурированные блоки, которые можно использовать для сборки видео.
 
-## Структура объекта сцены
+Пример структуры:
 
-Каждая сцена в массиве `scenes` должна иметь структуру:
-
-```json
 {
-  "scene": 1,
-  "block": "Hook",
-  "duration": "0-3 сек",
-  "content": "Содержание сцены",
-  "visual": "Описание визуала",
-  "on_screen_text": "Текст на экране"
+  "id": "idea_001",
+  "title": "Форма хоккейного клуба за минуты",
+  "duration_seconds": 30,
+  "language": "ru",
+  "aspect_ratio": "9:16",
+  "resolution": "1080x1920",
+  "voiceover": "...",
+  "captions": [],
+  "scenes": [
+    {
+      "scene": 1,
+      "block": "Hook",
+      "duration": "0-3 сек",
+      "content": "Быстро заявляем идею: ИИ помогает стартовать дизайн формы без долгих поисков",
+      "visual": "Быстрая смена кадров: референс, цвета, форма",
+      "on_screen_text": "Форма клуба за минуты"
+    }
+  ],
+  "cta": "Сохрани, если хочешь быстрее придумывать дизайн для спорта и брендов.",
+  "source_script_format": "markdown"
 }
-```
+Второй уровень преобразования
 
-## Правила парсинга
+Из video_pipeline_json формируется short_video_maker_payload.
 
-### `title`
+Этот payload отправляется в Short Video Maker через endpoint:
 
-Берётся из блока Markdown:
+POST /api/short-video
 
-```markdown
-## 1. Название ролика
-```
+Целевая структура:
 
-Первый непустой абзац после заголовка считается названием.
+{
+  "scenes": [
+    {
+      "text": "Быстро заявляем идею: ИИ помогает стартовать дизайн формы без долгих поисков",
+      "searchTerms": [
+        "hockey",
+        "sports design",
+        "technology"
+      ]
+    }
+  ],
+  "config": {
+    "paddingBack": 1500,
+    "music": "excited",
+    "captionPosition": "bottom",
+    "captionBackgroundColor": "blue",
+    "voice": "af_heart",
+    "orientation": "portrait",
+    "musicVolume": "medium"
+  }
+}
+Правила преобразования в video_pipeline_json
+id
 
-### `duration_seconds`
+Берётся из исходной идеи или video_payload.id.
 
-Берётся из:
+idea_001
+title
 
-```json
-video_payload.duration_seconds
-```
+Берётся из заголовка сценария или генерируется из темы идеи.
 
-Если поле отсутствует, использовать значение по умолчанию:
+duration_seconds
 
-```json
+Берётся из исходной идеи.
+
+Для тестового MVP:
+
 30
-```
+language
 
-### `language`
+Для текущего MVP:
 
-Берётся из:
+ru
+aspect_ratio
 
-```json
-video_payload.language
-```
+Для Reels, TikTok и YouTube Shorts:
 
-Если поле отсутствует, использовать:
+9:16
+resolution
 
-```json
-"ru"
-```
+Для вертикального видео:
 
-### `aspect_ratio`
+1080x1920
+voiceover
 
-Берётся из:
+Берётся из текстовой части сценария.
 
-```json
-video_payload.aspect_ratio
-```
+captions
 
-Если поле отсутствует, использовать:
+На текущем этапе может быть пустым массивом или набором коротких экранных фраз.
 
-```json
-"9:16"
-```
+scenes
 
-### `resolution`
+Сцены формируются из смысловых блоков сценария.
 
-Берётся из:
+Каждая сцена должна содержать:
 
-```json
-video_payload.video_requirements.resolution
-```
+Поле	Назначение
+scene	номер сцены
+block	тип блока: Hook, Context, Process, CTA
+duration	примерная длительность
+content	основной текст сцены
+visual	описание визуального ряда
+on_screen_text	экранный текст
+cta
 
-Если поле отсутствует, использовать:
+Финальный призыв к действию.
 
-```json
-"1080x1920"
-```
+Правила преобразования в short_video_maker_payload
+scenes[].text
 
-### `voiceover`
+Основное правило:
 
-Берётся из блока Markdown:
+video_pipeline_json.scenes[].content
 
-```markdown
-## 5. Voiceover
-```
+Fallback:
 
-Текст извлекается до следующего заголовка второго уровня:
+video_pipeline_json.scenes[].on_screen_text
 
-```markdown
-##
-```
+Если оба поля пустые:
 
-### `captions`
+video_pipeline_json.voiceover
+scenes[].searchTerms
 
-На первом этапе captions можно собирать двумя способами.
+На текущем этапе используются простые правила:
 
-Приоритет 1: из блока:
+Если сцена связана с хоккеем, формой или спортивным дизайном:
 
-```markdown
-## 6. On-screen text
-```
+[
+  "hockey",
+  "sports design",
+  "technology"
+]
 
-Приоритет 2: из колонки таблицы:
+Если сцена связана с ИИ или генерацией:
 
-```markdown
-Текст на экране
-```
+[
+  "artificial intelligence",
+  "creative process",
+  "technology"
+]
 
-Если оба способа не сработали, вернуть пустой массив:
+Fallback:
 
-```json
-[]
-```
+[
+  "sports",
+  "technology",
+  "creative process"
+]
 
-### `scenes`
+В будущей версии searchTerms должен формировать отдельный Visual/Search Agent.
 
-На первом этапе сцены берутся из таблицы блока:
+config.paddingBack
 
-```markdown
-## 4. Структура ролика
-```
+Текущее значение:
 
-Ожидаемый формат таблицы:
+1500
+config.music
 
-```markdown
-| Блок | Время | Содержание | Визуал | Текст на экране |
-|---|---:|---|---|---|
-| Hook | 0-3 сек | ... | ... | ... |
-```
+Текущее значение:
 
-Каждая строка таблицы превращается в объект:
+excited
+config.captionPosition
 
-```json
-{
-  "scene": 1,
-  "block": "Hook",
-  "duration": "0-3 сек",
-  "content": "...",
-  "visual": "...",
-  "on_screen_text": "..."
-}
-```
+Текущее значение:
 
-### `cta`
+bottom
+config.captionBackgroundColor
 
-Берётся из блока Markdown:
+Текущее значение:
 
-```markdown
-## 8. CTA
-```
+blue
+config.voice
 
-Первый непустой абзац после заголовка считается CTA.
+Текущее значение:
 
-Если блок не найден, использовать пустую строку:
+af_heart
+config.orientation
 
-```json
-""
-```
+Для вертикальных платформ:
 
-## Ограничения первой версии
+portrait
+config.musicVolume
 
-Первая версия адаптера может быть простой.
+Текущее значение:
 
-Допустимо:
+medium
+n8n workflow
 
-- использовать регулярные выражения;
-- парсить только базовые Markdown-блоки;
-- возвращать пустые массивы, если блоки не найдены;
-- оставлять пустую строку для `cta`, если блок отсутствует;
-- не обрабатывать сложные вложенные Markdown-структуры.
+Текущие node:
 
-Недопустимо:
-
-- терять `id`;
-- возвращать невалидный JSON;
-- ломать workflow, если часть Markdown-блоков отсутствует;
-- смешивать `script_markdown` и `video_pipeline_json` в одном поле;
-- удалять исходный сценарий до завершения video pipeline.
-
-## Ошибки и fallback
-
-Если `script_markdown` отсутствует, адаптер должен вернуть валидный объект с пустыми полями:
-
-```json
-{
-  "id": "idea_001",
-  "status": "ready_for_video_pipeline",
-  "video_pipeline_json": {
-    "id": "idea_001",
-    "title": "",
-    "duration_seconds": 30,
-    "language": "ru",
-    "aspect_ratio": "9:16",
-    "resolution": "1080x1920",
-    "voiceover": "",
-    "captions": [],
-    "scenes": [],
-    "cta": "",
-    "source_script_format": "markdown"
-  }
-}
-```
-
-## Будущая цепочка n8n
-
-После реализации адаптера workflow должен выглядеть так:
-
-```text
-Manual Trigger
-  ↓
-Idea Input
-  ↓
-Build Script Prompt
-  ↓
-LLM Script Generator
-  ↓
-Normalize Script Output
-  ↓
 Build Video Payload
   ↓
-Final Output
+Build Video Pipeline JSON
   ↓
-Build Video Pipeline JSON
-```
+Build Short Video Maker Payload
+  ↓
+Create Short Video
+  ↓
+Normalize Short Video Response
+  ↓
+Wait for Short Video Render
+  ↓
+Check Short Video Status
+  ↓
+Finalize Short Video Result
+  ↓
+Convert Result JSON to File
+Результат Short Video Maker
 
-## Следующий технический шаг
+После POST /api/short-video сервис возвращает:
 
-Реализовать адаптер в n8n через `Code` node:
+{
+  "videoId": "cmpmziptu000635s6d4pd1j3h"
+}
 
-```text
-Build Video Pipeline JSON
-```
+После ожидания workflow проверяет статус:
 
-Этот node должен:
+GET /api/short-video/{videoId}/status
 
-1. принять `video_payload`;
-2. извлечь `script_markdown`;
-3. распарсить title, voiceover, captions, scenes и CTA;
-4. вернуть `video_pipeline_json`;
-5. сохранить исходный `id`.
+Ожидаемый ответ:
+
+{
+  "status": "ready"
+}
+
+После этого workflow формирует итоговый объект:
+
+{
+  "id": "idea_001",
+  "status": "short_video_ready",
+  "render_status": "ready",
+  "videoId": "cmpmziptu000635s6d4pd1j3h",
+  "status_url": "http://host.docker.internal:3123/api/short-video/cmpmziptu000635s6d4pd1j3h/status",
+  "video_url": "http://host.docker.internal:3123/api/short-video/cmpmziptu000635s6d4pd1j3h",
+  "browser_url": "http://localhost:3123/video/cmpmziptu000635s6d4pd1j3h",
+  "source": "short-video-maker",
+  "completed_at": "2026-05-27T07:26:04.054Z"
+}
+Выходные файлы
+
+Текущие sample-файлы:
+
+data/outputs/idea_001-video-payload.json
+data/outputs/idea_001-video-pipeline.json
+data/outputs/idea_001-short-video-result.json
+
+Готовый mp4 скачивается отдельно:
+
+data/generated/idea_001-short-video.mp4
+
+Папка data/generated/ не коммитится.
+
+## Ограничения текущего адаптера
+
+- `searchTerms` пока формируются простыми правилами;
+- визуальный ряд зависит от Pexels;
+- Pexels может вернуть нерелевантный stock footage;
+- русский TTS пока не production-quality;
+- длительность сцен пока не рассчитывается точно;
+- ожидание рендера реализовано фиксированной задержкой 60 секунд;
+- нет цикла повторной проверки статуса;
+- нет обработки `failed` кроме финального статуса.
 
 ## Следующие улучшения
 
-В следующих версиях адаптера нужно добавить:
-
-- более устойчивый Markdown parser;
-- отдельное поле `music_mood`;
-- отдельное поле `visual_style`;
-- отдельное поле `thumbnail_prompt`;
-- отдельное поле `posting_caption`;
-- отдельное поле `hashtags`;
-- адаптацию под конкретные платформы: Reels, TikTok, YouTube Shorts;
-- проверку длительности сцен;
-- проверку количества caption-строк;
-- проверку безопасных зон для интерфейсов платформ.
+1. Добавить Visual/Search Agent для генерации точных `searchTerms`.
+2. Добавить контроль длительности сцен.
+3. Добавить цикл проверки статуса видео.
+4. Добавить обработку ошибок `failed`.
+5. Добавить локальную библиотеку футажей.
+6. Добавить production TTS для русского языка.
+7. Добавить branded captions template.
+8. Добавить publishing payload для Postiz.
