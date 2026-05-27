@@ -1,0 +1,41 @@
+{
+  "id": "idea_001",
+  "source": "visual-bible-agent",
+  "status": "visual_bible_ready",
+  "visual_bible": {
+    "project_style": "premium sports-tech vertical ad",
+    "aspect_ratio": "9:16",
+    "visual_language": "cinematic, clean, high-contrast, controlled studio look",
+    "brand_colors": [
+      "black",
+      "white",
+      "teal",
+      "orange"
+    ],
+    "lighting": "soft cinematic studio light",
+    "environment_style": "modern sports design studio",
+    "texture_style": "premium fabric, jersey details, subtle technical surfaces",
+    "consistency_rules": [
+      "keep one visual style across all scenes",
+      "keep hockey jersey silhouette consistent",
+      "avoid random sports",
+      "avoid basketball, soccer and generic gym footage",
+      "avoid fake sponsor logos",
+      "avoid broken text on uniforms"
+    ]
+  },
+  "objects": [
+    {
+      "object_id": "hockey_jersey_01",
+      "type": "hockey jersey",
+      "description": "premium hockey jersey with black, white, teal and orange accents",
+      "consistency_rules": [
+        "keep hockey jersey construction",
+        "avoid football shirt shape",
+        "avoid basketball uniform shape",
+        "avoid random logos"
+      ]
+    }
+  ],
+  "characters": []
+}

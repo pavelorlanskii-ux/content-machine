@@ -1,0 +1,74 @@
+{
+  "id": "idea_001",
+  "source": "storyboard-agent",
+  "status": "storyboard_ready",
+  "storyboard": [
+    {
+      "scene_id": "scene_01",
+      "source_scene": 1,
+      "goal": "hook",
+      "duration_sec": 3,
+      "shot_type": "close-up",
+      "camera_motion": "fast push-in",
+      "composition": "hockey jersey detail in foreground, AI interface glow in background",
+      "visual_description": "A cinematic close-up of a premium hockey jersey on a design table, with a subtle AI interface glow behind it.",
+      "required_objects": [
+        "hockey jersey",
+        "design table",
+        "AI interface"
+      ],
+      "forbidden_objects": [
+        "basketball",
+        "football shirt",
+        "soccer field",
+        "random gym"
+      ],
+      "on_screen_text": "Форма клуба за минуты",
+      "mood": "premium sports-tech"
+    },
+    {
+      "scene_id": "scene_02",
+      "source_scene": 2,
+      "goal": "show process",
+      "duration_sec": 4,
+      "shot_type": "over-the-shoulder",
+      "camera_motion": "slow push-in",
+      "composition": "designer workspace with references, color palette and hockey jersey mockup",
+      "visual_description": "A sports designer reviews club colors, jersey references and AI-generated design variants on a clean workstation.",
+      "required_objects": [
+        "color palette",
+        "hockey jersey mockup",
+        "design screen"
+      ],
+      "forbidden_objects": [
+        "basketball",
+        "soccer uniform",
+        "generic gym"
+      ],
+      "on_screen_text": "Референсы, цвета, настроение",
+      "mood": "focused creative process"
+    },
+    {
+      "scene_id": "scene_03",
+      "source_scene": 3,
+      "goal": "show result",
+      "duration_sec": 4,
+      "shot_type": "product shot",
+      "camera_motion": "slow cinematic pan",
+      "composition": "final hockey jersey concept centered in frame, premium studio background",
+      "visual_description": "A final premium hockey jersey concept appears in a clean studio presentation, with subtle teal and orange accents.",
+      "required_objects": [
+        "final hockey jersey",
+        "studio background",
+        "premium lighting"
+      ],
+      "forbidden_objects": [
+        "basketball jersey",
+        "football shirt",
+        "soccer field"
+      ],
+      "on_screen_text": "Человек выбирает сильный вариант",
+      "mood": "confident final reveal"
+    }
+  ]
+}

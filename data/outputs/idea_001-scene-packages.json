@@ -1,0 +1,68 @@
+{
+  "id": "idea_001",
+  "source": "scene-package-builder",
+  "status": "scene_packages_ready",
+  "provider": "higgsfield",
+  "scene_packages": [
+    {
+      "scene_id": "scene_01",
+      "duration_sec": 3,
+      "aspect_ratio": "9:16",
+      "output_format": "mp4",
+      "voiceover_text": "Форму хоккейного клуба можно придумать не за недели, а за минуты.",
+      "on_screen_text": "Форма клуба за минуты",
+      "visual_prompt": "A cinematic close-up of a premium hockey jersey on a design table, modern sports-tech studio, AI interface glow in the background, black white teal orange accents, vertical 9:16, premium commercial look",
+      "negative_prompt": "basketball, football, soccer, random gym, generic fitness, low quality, distorted text, fake logos, wrong jersey shape",
+      "camera_prompt": "fast push-in, shallow depth of field, product-focused close-up",
+      "style_reference": "visual_bible_001",
+      "character_reference": null,
+      "object_reference": "hockey_jersey_01",
+      "qa_rules": [
+        "must show hockey jersey or hockey design context",
+        "must not show basketball or soccer",
+        "must match premium sports-tech style",
+        "must be usable in vertical social video"
+      ]
+    },
+    {
+      "scene_id": "scene_02",
+      "duration_sec": 4,
+      "aspect_ratio": "9:16",
+      "output_format": "mp4",
+      "voiceover_text": "Сначала берём референс, цвета клуба и настроение команды.",
+      "on_screen_text": "Референсы, цвета, настроение",
+      "visual_prompt": "A sports designer workstation with hockey jersey references, club color palette, fabric samples and AI design interface, modern sports-tech studio, cinematic lighting, vertical 9:16",
+      "negative_prompt": "basketball, soccer, football shirt, random gym, generic office, low quality, distorted text, fake logos",
+      "camera_prompt": "slow push-in, over-the-shoulder view, premium creative process",
+      "style_reference": "visual_bible_001",
+      "character_reference": null,
+      "object_reference": "hockey_jersey_01",
+      "qa_rules": [
+        "must show design process",
+        "must include hockey jersey references",
+        "must match premium sports-tech style",
+        "must not show unrelated sports"
+      ]
+    },
+    {
+      "scene_id": "scene_03",
+      "duration_sec": 4,
+      "aspect_ratio": "9:16",
+      "output_format": "mp4",
+      "voiceover_text": "ИИ быстро собирает несколько вариантов, а человек выбирает сильный.",
+      "on_screen_text": "Человек выбирает сильный вариант",
+      "visual_prompt": "A final premium hockey jersey concept displayed in a clean studio presentation, black white teal orange accents, cinematic product reveal, vertical 9:16, high-end sports branding look",
+      "negative_prompt": "basketball jersey, football shirt, soccer field, random gym, distorted logo, broken text, low quality",
+      "camera_prompt": "slow cinematic pan, product reveal, clean studio background",
+      "style_reference": "visual_bible_001",
+      "character_reference": null,
+      "object_reference": "hockey_jersey_01",
+      "qa_rules": [
+        "must show final hockey jersey concept",
+        "must preserve hockey jersey silhouette",
+        "must match visual bible",
+        "must be suitable for final reveal"
+      ]
+    }
+  ]
+}
