@@ -22,6 +22,9 @@
         "must not show basketball or soccer",
         "must match premium sports-tech style",
         "must be usable in vertical social video"
+      ],
+      "motions": [
+        "General"
       ]
     },
     {
@@ -42,6 +45,9 @@
         "must include hockey jersey references",
         "must match premium sports-tech style",
         "must not show unrelated sports"
+      ],
+      "motions": [
+        "Handheld"
       ]
     },
     {
@@ -62,6 +68,9 @@
         "must preserve hockey jersey silhouette",
         "must match visual bible",
         "must be suitable for final reveal"
+      ],
+      "motions": [
+        "General"
       ]
     }
   ]
