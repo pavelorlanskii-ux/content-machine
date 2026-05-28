@@ -1,0 +1,1111 @@
+{
+  "name": "Script Agent Prompt Builder",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2576,
+        -240
+      ],
+      "id": "af74d9f2-3b9a-44c0-b208-50a6ac96301f",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst prompt = `# Script Agent Prompt\n\nТы Script Agent для контент-машины вертикальных видео.\n\nТвоя задача: превратить входную идею в готовую структуру ролика для Reels, TikTok или YouTube Shorts.\n\n## Входные данные\n\nID идеи:\n${item.id}\n\nТема:\n${item.topic}\n\nЦелевая аудитория:\n${item.audience}\n\nПлатформа:\n${item.platform}\n\nДлительность:\n${item.duration_seconds} секунд\n\nТональность:\n${item.tone}\n\nЦель:\n${item.goal}\n\nОграничения:\n${item.constraints}\n\n## Требования к результату\n\nВерни результат строго в Markdown.\n\nСтруктура ответа:\n\n# ${item.id}. Сценарий вертикального видео\n\n## 1. Название ролика\n\nКороткое рабочее название.\n\n## 2. Цель ролика\n\nКратко объясни, что должен сделать ролик.\n\n## 3. Хук\n\nОдна сильная фраза для первых 1-3 секунд.\n\n## 4. Структура ролика\n\n| Блок | Время | Содержание | Визуал | Текст на экране |\n|---|---:|---|---|---|\n\nОбязательные блоки:\n\n- Hook;\n- Setup;\n- Main value;\n- Payoff;\n- CTA.\n\n## 5. Voiceover\n\nПолный текст озвучки.\n\n## 6. On-screen text\n\nСписок надписей на экране по сценам.\n\n## 7. Scene prompts\n\nДля каждой сцены укажи:\n\n- номер сцены;\n- что происходит;\n- визуальный стиль;\n- движение камеры;\n- важные ограничения.\n\n## 8. CTA\n\nФинальный призыв к действию.\n\n## 9. 5 альтернативных хуков\n\nСписок из пяти вариантов.\n\n## Ограничения\n\n- Не добавляй факты, которых нет во входных данных.\n- Не используй длинное вступление.\n- Не пиши канцеляритом.\n- Не делай сценарий длиннее указанной длительности.\n- Пиши на русском языке.\n- Делай текст пригодным для вертикального видео.`;\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      prompt,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        0
+      ],
+      "id": "3ca99611-8a98-4d4a-a227-93c94dd82857",
+      "name": "Build Script Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.5",
+          "mode": "list",
+          "cachedResultName": "GPT-5.5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1504,
+        0
+      ],
+      "id": "5d365e59-fda2-4923-aaeb-109b075d30e9",
+      "name": "LLM Script Generator",
+      "credentials": {
+        "openAiApi": {
+          "id": "Z7Bop0DKJLVQi260",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst scriptMarkdown =\n  item.output?.[0]?.content?.[0]?.text ||\n  item.output?.content?.[0]?.text ||\n  item.text ||\n  '';\n\nreturn [\n  {\n    json: {\n      id: 'idea_001',\n      script_markdown: scriptMarkdown,\n      generated_at: new Date().toISOString(),\n      source: 'openai',\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1872,
+        0
+      ],
+      "id": "48c2e38f-ac12-42ba-b12f-d3e5668779e4",
+      "name": "Normalize Script Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst scriptMarkdown = item.script_markdown || '';\n\nconst videoPayload = {\n  id: item.id,\n  format: 'vertical_video',\n  aspect_ratio: '9:16',\n  platform: 'reels_tiktok_shorts',\n  language: 'ru',\n  duration_seconds: 30,\n  source: item.source || 'openai',\n  generated_at: item.generated_at,\n  script_markdown: scriptMarkdown,\n  production_status: 'script_ready',\n  next_step: 'video_generation',\n  video_requirements: {\n    resolution: '1080x1920',\n    captions: true,\n    voiceover: true,\n    background_music: true,\n    safe_zones: true\n  }\n};\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      video_payload: videoPayload\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        0
+      ],
+      "id": "0afa3773-459c-43c2-9542-646f54f0ca3a",
+      "name": "Build Video Payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      status: 'ready_for_video_generation',\n      video_payload: item.video_payload,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2288,
+        0
+      ],
+      "id": "67e7e374-21b3-4ce7-aaf8-71d953aa2b83",
+      "name": "Final Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst videoPayload = item.video_payload || {};\nconst scriptMarkdown = videoPayload.script_markdown || '';\n\nfunction extractSection(markdown, heading) {\n  const escapedHeading = heading.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n  const regex = new RegExp(`##\\\\s+${escapedHeading}\\\\s*\\\\n([\\\\s\\\\S]*?)(?=\\\\n##\\\\s+|$)`, 'i');\n  const match = markdown.match(regex);\n  return match ? match[1].trim() : '';\n}\n\nfunction firstNonEmptyLine(text) {\n  return text\n    .split('\\n')\n    .map(line => line.trim())\n    .filter(line => line && !line.startsWith('|') && !line.startsWith('---'))[0] || '';\n}\n\nfunction parseStructureTable(markdown) {\n  const section = extractSection(markdown, '4. Структура ролика');\n  const lines = section\n    .split('\\n')\n    .map(line => line.trim())\n    .filter(line => line.startsWith('|'));\n\n  const dataLines = lines.filter(line => {\n    return !line.includes('---') && !line.includes('Блок') && line.split('|').length >= 6;\n  });\n\n  return dataLines.map((line, index) => {\n    const cells = line\n      .split('|')\n      .map(cell => cell.trim())\n      .filter(Boolean);\n\n    return {\n      scene: index + 1,\n      block: cells[0] || '',\n      duration: cells[1] || '',\n      content: cells[2] || '',\n      visual: cells[3] || '',\n      on_screen_text: cells[4] || ''\n    };\n  });\n}\n\nfunction extractCaptions(markdown, scenes) {\n  const onScreenTextSection = extractSection(markdown, '6. On-screen text');\n\n  if (onScreenTextSection) {\n    return onScreenTextSection\n      .split('\\n')\n      .map(line => line.trim())\n      .map(line => line.replace(/^\\d+\\.\\s*/, '').replace(/^[-*]\\s*/, '').trim())\n      .filter(Boolean);\n  }\n\n  return scenes\n    .map(scene => scene.on_screen_text)\n    .filter(Boolean);\n}\n\nconst scenes = parseStructureTable(scriptMarkdown);\n\nconst title = firstNonEmptyLine(extractSection(scriptMarkdown, '1. Название ролика'));\nconst voiceover = extractSection(scriptMarkdown, '5. Voiceover');\nconst captions = extractCaptions(scriptMarkdown, scenes);\nconst cta = firstNonEmptyLine(extractSection(scriptMarkdown, '8. CTA'));\n\nconst videoPipelineJson = {\n  id: item.id || videoPayload.id || '',\n  title,\n  duration_seconds: videoPayload.duration_seconds || 30,\n  language: videoPayload.language || 'ru',\n  aspect_ratio: videoPayload.aspect_ratio || '9:16',\n  resolution: videoPayload.video_requirements?.resolution || '1080x1920',\n  voiceover,\n  captions,\n  scenes,\n  cta,\n  source_script_format: 'markdown'\n};\n\nreturn [\n  {\n    json: {\n      id: item.id || videoPayload.id || '',\n      status: 'ready_for_video_pipeline',\n      video_pipeline_json: videoPipelineJson,\n      source_video_payload: videoPayload,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2496,
+        0
+      ],
+      "id": "4d1f691b-39f1-4c19-836a-6bb5d171c33f",
+      "name": "Build Video Pipeline JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst pipeline = item.video_pipeline_json;\n\nif (!pipeline) {\n  throw new Error(\"video_pipeline_json not found\");\n}\n\nconst scenes = pipeline.scenes || [];\n\nif (!Array.isArray(scenes) || scenes.length === 0) {\n  throw new Error(\"video_pipeline_json.scenes is empty or not an array\");\n}\n\nconst globalStyle = [\n  \"vertical 9:16 social video\",\n  \"premium cinematic commercial look\",\n  \"clean composition\",\n  \"controlled lighting\",\n  \"high visual clarity\",\n  \"family-friendly 3D animated adventure look\",\n  \"toy-like 3D characters\",\n  \"colorful safe fantasy world\",\n  \"expressive emotions\",\n  \"soft cinematic lighting\",\n  \"modern AI-assisted creative workflow\",\n  \"no random logos\",\n  \"no brand references\",\n  \"no recognizable copyrighted characters\",\n  \"no text inside the image\",\n  \"no letters\",\n  \"no captions\",\n  \"no subtitles\",\n  \"no typography\",\n  \"no broken text\",\n  \"no distorted objects\"\n].join(\", \");\n\nconst noTextRule =\n  \"Do not render any text, letters, captions, subtitles, words, numbers, symbols or typography inside the image. On-screen text will be added later in post-production.\";\n\nconst packages = scenes.map((scene, index) => {\n  const sceneNumber = scene.scene || index + 1;\n  const sceneId = `scene_${String(sceneNumber).padStart(2, \"0\")}`;\n\n  const visual = scene.visual || \"\";\n  const content = scene.content || \"\";\n  const onScreenText = scene.on_screen_text || \"\";\n\n  const keyframePrompt = [\n    `A premium cinematic keyframe for scene ${sceneNumber} of a vertical family-friendly 3D animated social video.`,\n    `Scene idea: ${content}.`,\n    `Visual direction: ${visual}.`,\n    `Use the on-screen text only as story context, not as visible text: ${onScreenText}.`,\n    noTextRule,\n    globalStyle\n  ].filter(Boolean).join(\" \");\n\n  const dopPrompt = [\n    `Animate this keyframe as a short cinematic vertical video scene.`,\n    `Scene idea: ${content}.`,\n    `Camera movement should be subtle, smooth and premium.`,\n    `Keep the main character, environment and key objects stable and visually coherent.`,\n    `Do not introduce unrelated objects.`,\n    noTextRule\n  ].filter(Boolean).join(\" \");\n\n  return {\n    scene_id: sceneId,\n    scene_number: sceneNumber,\n    block: scene.block || \"\",\n    duration: scene.duration || \"\",\n    content,\n    visual,\n    on_screen_text: onScreenText,\n    keyframe_prompt: keyframePrompt,\n    dop_prompt: dopPrompt,\n    aspect_ratio: pipeline.aspect_ratio || \"9:16\",\n    width_and_height: \"1152x2048\",\n    quality: \"720p\",\n    batch_size: 1,\n    enhance_prompt: true,\n    style_strength: 1,\n    motions: null,\n    constraints: [\n      \"must match the source script\",\n      \"must match the scene visual direction\",\n      \"must be suitable for vertical social video\",\n      \"must be family-friendly\",\n      \"must avoid random logos\",\n      \"must avoid brand references\",\n      \"must avoid recognizable copyrighted characters\",\n      \"must avoid text inside the image\",\n      \"must avoid letters\",\n      \"must avoid captions\",\n      \"must avoid subtitles\",\n      \"must avoid typography\",\n      \"must avoid broken text\",\n      \"must avoid distorted objects\"\n    ]\n  };\n});\n\nreturn [\n  {\n    json: {\n      id: pipeline.id || item.id || \"idea_001\",\n      status: \"higgsfield_scene_packages_ready\",\n      source: \"build-higgsfield-scene-packages\",\n      title: pipeline.title || \"\",\n      language: pipeline.language || \"ru\",\n      duration_seconds: pipeline.duration_seconds || 30,\n      aspect_ratio: pipeline.aspect_ratio || \"9:16\",\n      scene_packages: packages,\n      source_video_pipeline_json: pipeline,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        0
+      ],
+      "id": "cc4e27fb-8666-4f36-ac83-8386da560058",
+      "name": "Build Higgsfield Scene Packages"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst packages = item.scene_packages || [];\n\nif (!Array.isArray(packages) || packages.length === 0) {\n  throw new Error(\"scene_packages is empty or not an array\");\n}\n\nreturn packages.map((scenePackage) => ({\n  json: {\n    id: item.id,\n    title: item.title,\n    language: item.language,\n    duration_seconds: item.duration_seconds,\n    aspect_ratio: item.aspect_ratio,\n    ...scenePackage\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        0
+      ],
+      "id": "6fcbd15d-387e-4c21-95c3-42feb648510b",
+      "name": "Split Scene Packages"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst scene01 = items.find((item) => item.json.scene_id === \"scene_01\");\n\nif (!scene01) {\n  throw new Error(\"scene_01 not found\");\n}\n\nreturn [scene01];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3088,
+        0
+      ],
+      "id": "9d2bb8f7-38e8-4a66-af95-cc11b56d39da",
+      "name": "Keep Scene 01 Only"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (!item.keyframe_prompt) {\n  throw new Error(\"keyframe_prompt not found\");\n}\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      title: item.title,\n      language: item.language,\n      duration_seconds: item.duration_seconds,\n      aspect_ratio: item.aspect_ratio,\n\n      scene_id: item.scene_id,\n      scene_number: item.scene_number,\n      block: item.block,\n      duration: item.duration,\n      content: item.content,\n      visual: item.visual,\n      on_screen_text: item.on_screen_text,\n\n      source: \"keyframe-generation-layer\",\n      provider: \"higgsfield\",\n      model: \"soul\",\n      soul_endpoint: \"/v1/text2image/soul\",\n\n      dop_prompt: item.dop_prompt,\n      motions: item.motions,\n\n      soul_payload: {\n        params: {\n          seed: null,\n          prompt: item.keyframe_prompt,\n          quality: item.quality || \"720p\",\n          batch_size: item.batch_size || 1,\n          enhance_prompt: item.enhance_prompt ?? true,\n          style_strength: item.style_strength || 1,\n          width_and_height: item.width_and_height || \"1152x2048\"\n        },\n        webhook: null\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3296,
+        0
+      ],
+      "id": "5f69c4c0-4089-466f-9f9c-cd83705f7911",
+      "name": "Build Soul Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + $json.soul_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.soul_payload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2560,
+        208
+      ],
+      "id": "93dd0125-364e-4ca5-8ecf-86f4d64b314d",
+      "name": "Create Soul Image"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2768,
+        208
+      ],
+      "id": "cdb1a516-87bf-4feb-afd3-ae6a5562687b",
+      "name": "Wait for Soul Render",
+      "webhookId": "00e12a71-f155-4ec6-a445-db2375331706"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + \"/requests/\" + $json.id + \"/status\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2976,
+        208
+      ],
+      "id": "61a00aa5-a298-45ab-b9d8-c71a93019d00",
+      "name": "Check Soul Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (item.status !== \"completed\") {\n  return [\n    {\n      json: {\n        status: \"not_ready\",\n        provider_status: item.status,\n        request_id: item.request_id,\n        status_url: item.status_url,\n        source: \"higgsfield-soul\"\n      }\n    }\n  ];\n}\n\nconst keyframeUrl = item.images?.[0]?.url;\n\nif (!keyframeUrl) {\n  throw new Error(\"Soul completed, but images[0].url was not found\");\n}\n\nreturn [\n  {\n    json: {\n      scene_id: \"scene_01\",\n      keyframe_status: \"ready\",\n      keyframe_request_id: item.request_id,\n      keyframe_url: keyframeUrl,\n      source: \"higgsfield-soul\",\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3200,
+        208
+      ],
+      "id": "f10bad3f-9bd1-463a-8f1a-51c9c7549469",
+      "name": "Normalize Keyframe Result"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (item.keyframe_status !== \"ready\") {\n  throw new Error(\"Keyframe is not ready\");\n}\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      title: item.title,\n      language: item.language,\n      duration_seconds: item.duration_seconds,\n      aspect_ratio: item.aspect_ratio,\n\n      scene_id: item.scene_id,\n      source: \"higgsfield-dop-turbo\",\n      provider: \"higgsfield\",\n      model: \"dop-turbo\",\n      dop_endpoint: \"/higgsfield-ai/dop/turbo\",\n\n      keyframe_url: item.keyframe_url,\n\n      dop_payload: {\n        seed: null,\n        prompt: item.dop_prompt || \"Animate this keyframe as a short cinematic vertical video scene. Camera movement should be subtle, smooth and premium.\",\n        motions: null,\n        image_url: item.keyframe_url,\n        enhance_prompt: true\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3408,
+        208
+      ],
+      "id": "ec92c4b5-ddda-4b83-a7a4-c58d3b69c7d5",
+      "name": "Build DoP Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + $json.dop_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.dop_payload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3632,
+        208
+      ],
+      "id": "4b65249d-bd6c-47be-bcb5-60a541f8a24e",
+      "name": "Create DoP Video"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3856,
+        208
+      ],
+      "id": "42d85201-7222-4db8-930a-b025613f127f",
+      "name": "Wait for DoP Render",
+      "webhookId": "c57b61ab-908b-4130-87ad-8c82c5ac98b0"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + \"/requests/\" + $json.request_id + \"/status\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4080,
+        208
+      ],
+      "id": "9932ba9b-7f43-40b8-8fb3-8e7bf2a9b7cd",
+      "name": "Check DoP Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (item.status !== \"completed\") {\n  return [\n    {\n      json: {\n        status: \"not_ready\",\n        provider_status: item.status,\n        request_id: item.request_id,\n        status_url: item.status_url,\n        source: \"higgsfield-dop-turbo\"\n      }\n    }\n  ];\n}\n\nconst sceneVideoUrl = item.video?.url;\n\nif (!sceneVideoUrl) {\n  throw new Error(\"DoP completed, but video.url was not found\");\n}\n\nreturn [\n  {\n    json: {\n      scene_id: \"scene_01\",\n      scene_video_status: \"ready\",\n      video_request_id: item.request_id,\n      scene_video_url: sceneVideoUrl,\n      source: \"higgsfield-dop-turbo\",\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4368,
+        208
+      ],
+      "id": "14bd1c5f-ec8b-4345-869c-f067bc2a8258",
+      "name": "Normalize Scene Video Result"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8abd7f7c-5b54-4367-8b6e-6b34693dc1ba",
+              "name": "id",
+              "value": "idea_001",
+              "type": "string"
+            },
+            {
+              "id": "26c41e44-6372-4cf8-ae43-8ae27b97b659",
+              "name": "raw_idea",
+              "value": "Хочу делать короткие вертикальные видео в сегменте детского развлекательного short-form контента. Нужен не заранее придуманный милый сюжет, а система, которая сначала анализирует актуальные паттерны потребления детского контента, затем выбирает трендовую механику, а уже потом придумывает сценарий, визуальный подход и сцены для генерации видео.",
+              "type": "string"
+            },
+            {
+              "id": "2ef2612f-44a8-42a6-9eab-6d1ed88889c8",
+              "name": "target_audience",
+              "value": "дети и семейная аудитория",
+              "type": "string"
+            },
+            {
+              "id": "69361ee8-d631-4ac7-9472-705a83e1572c",
+              "name": "platform",
+              "value": "YouTube Shorts / Reels",
+              "type": "string"
+            },
+            {
+              "id": "fc8f2d5b-145a-467b-9b42-4c836eb147bd",
+              "name": "duration_seconds",
+              "value": "30",
+              "type": "string"
+            },
+            {
+              "id": "eda42698-879d-41a1-8330-a3867a9252e1",
+              "name": "trend_direction",
+              "value": "актуальный детский short-form контент: быстрые 3D/мультяшные истории, игровые ситуации, визуальные трансформации, поиск и сбор предметов, простые миссии, смешные безопасные ошибки, неожиданные превращения, яркие персонажи, динамичный монтаж, повторяемая структура серии, высокий retention в первые секунды",
+              "type": "string"
+            },
+            {
+              "id": "d6cc0ba3-7e1c-48d2-aa0d-fc50b4b8f9f2",
+              "name": "research_goal",
+              "value": "выявить трендовые механики детского short-form контента и на их основе сформировать безопасный, оригинальный brief для сценария, без заранее заданного визуального стиля и без копирования брендов или известных персонажей",
+              "type": "string"
+            },
+            {
+              "id": "c7b2109b-bca4-4a56-b086-072ef479d4c3",
+              "name": "safety_constraints",
+              "value": "без насилия, страха, опасных челленджей, взрослых тем, токсичного поведения, манипулятивных призывов и небезопасных действий; конфликт должен быть мягким, понятным и безопасным для детской и семейной аудитории",
+              "type": "string"
+            },
+            {
+              "id": "6b732d63-a71a-4e58-af70-f6c88730eecd",
+              "name": "brand_constraints",
+              "value": "не использовать прямые отсылки к Disney, Pixar, Roblox, Minecraft, LEGO, DreamWorks и другим брендам; не копировать персонажей, миры, визуальную айдентику или узнаваемые игровые механики конкретных франшиз",
+              "type": "string"
+            },
+            {
+              "id": "a7592b55-a99c-4845-aaba-66b1b6ee9a44",
+              "name": "output_goal",
+              "value": "получить трендовый детский short-form brief, из которого дальше можно сделать сценарий, раскадровку, keyframe prompts и видео через Higgsfield",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2336,
+        0
+      ],
+      "id": "9c2255a4-bc13-4d96-9492-416e15159c7c",
+      "name": "Raw Idea Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst trendBrief = item.raw_trend_brief_json || item;\n\nconst selectedDirection = trendBrief.selected_direction || {};\nconst pacing = trendBrief.recommended_pacing || {};\n\nconst prompt = `\nТы Idea Parser Agent для автоматической content-machine коротких вертикальных видео.\n\nТвоя задача:\nпреобразовать trend brief в структурированный creative brief для генерации сценария.\n\nВажно:\n- Не придумывай generic “милый добрый сюжет” без механики удержания.\n- Основывайся на trend brief: быстрый хук, ошибка, выбор, угадайка, трансформация, короткая развязка.\n- Не копируй конкретные YouTube-ролики, названия, каналы, бренды, персонажей или франшизы.\n- Не используй стиль Disney, Pixar, Roblox, Minecraft, LEGO, DreamWorks, Marvel, DC, Nintendo, Cocomelon, Baby Shark и других известных IP.\n- Не используй прямые визуальные отсылки к брендам, логотипам, фирменным цветовым схемам или узнаваемым персонажам.\n- Контент должен быть безопасен для детей и семейной аудитории.\n- Без насилия, пугающих сцен, взрослых тем, опасных челленджей, токсичного поведения, медицинских процедур, оружия, огня, аварий и хоррора.\n- Не размещай текст, буквы, цифры, вывески, логотипы или надписи внутри генерируемого изображения/видео.\n- Любой on-screen text будет добавляться позже на монтажном слое.\n- Язык простой, визуальная логика понятная без текста.\n- Формат: короткий вертикальный ролик для Shorts/Reels.\n- Ответ строго в JSON. Без markdown. Без пояснений.\n\nTrend brief title:\n${trendBrief.trend_brief_title || \"\"}\n\nMain observation:\n${trendBrief.source_summary?.main_observation || \"\"}\n\nSelected direction:\n${JSON.stringify(selectedDirection, null, 2)}\n\nRecommended content patterns:\n${JSON.stringify(trendBrief.recommended_content_patterns || [], null, 2)}\n\nRecommended hook types:\n${JSON.stringify(trendBrief.recommended_hook_types || [], null, 2)}\n\nRecommended story mechanics:\n${JSON.stringify(trendBrief.recommended_story_mechanics || [], null, 2)}\n\nRecommended visual mechanics:\n${JSON.stringify(trendBrief.recommended_visual_mechanics || [], null, 2)}\n\nRecommended character archetypes:\n${JSON.stringify(trendBrief.recommended_character_archetypes || [], null, 2)}\n\nRecommended pacing:\n${JSON.stringify(pacing, null, 2)}\n\nSafety rules:\n${JSON.stringify(trendBrief.safety_rules || [], null, 2)}\n\nBrand/IP exclusions:\n${JSON.stringify(trendBrief.brand_ip_exclusions || [], null, 2)}\n\nNegative generation rules:\n${JSON.stringify(trendBrief.negative_generation_rules || [], null, 2)}\n\nBrief for idea parser:\n${trendBrief.brief_for_idea_parser || \"\"}\n\nВерни JSON строго такой структуры:\n\n{\n  \"id\": \"idea_001\",\n  \"status\": \"parsed_idea_ready\",\n  \"topic\": \"\",\n  \"content_category\": \"\",\n  \"audience\": \"дети и семейная аудитория\",\n  \"platform\": \"YouTube Shorts / Reels\",\n  \"duration_seconds\": 18,\n  \"tone\": \"\",\n  \"goal\": \"\",\n  \"retention_strategy\": {\n    \"first_2_seconds\": \"\",\n    \"core_loop\": \"\",\n    \"payoff\": \"\",\n    \"replay_trigger\": \"\"\n  },\n  \"story_premise\": \"\",\n  \"main_character\": {\n    \"type\": \"\",\n    \"personality\": \"\",\n    \"visual_description\": \"\",\n    \"safety_notes\": \"\"\n  },\n  \"supporting_character\": {\n    \"type\": \"\",\n    \"role_in_story\": \"\",\n    \"visual_description\": \"\"\n  },\n  \"world\": {\n    \"setting\": \"\",\n    \"visual_style\": \"\",\n    \"mood\": \"\",\n    \"environment_rules\": \"\"\n  },\n  \"central_object\": {\n    \"object_type\": \"\",\n    \"role\": \"\",\n    \"wrong_state\": \"\",\n    \"correct_state\": \"\",\n    \"transformation_logic\": \"\"\n  },\n  \"plot\": {\n    \"hook\": \"\",\n    \"conflict\": \"\",\n    \"choice_or_action\": \"\",\n    \"turning_point\": \"\",\n    \"resolution\": \"\",\n    \"loop_hint\": \"\"\n  },\n  \"visual_direction\": \"\",\n  \"scene_generation_rules\": {\n    \"must_have\": [],\n    \"must_avoid\": [],\n    \"text_policy\": \"no text, letters, numbers, subtitles, signs or logos inside generated visuals\"\n  },\n  \"safety_rules\": [],\n  \"brand_ip_exclusions\": [],\n  \"negative_references\": [],\n  \"brief_source\": \"trend_brief\"\n}\n`;\n\nreturn [\n  {\n    json: {\n      id: trendBrief.id || \"idea_001\",\n      status: \"idea_parser_prompt_ready\",\n      source: \"build-idea-parser-prompt-from-trend-brief\",\n      trend_brief: trendBrief,\n      idea_parser_prompt: prompt.trim(),\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        0
+      ],
+      "id": "3f382400-0493-4edb-b196-1c585f4d56ba",
+      "name": "Build Idea Parser Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.5",
+          "mode": "list",
+          "cachedResultName": "GPT-5.5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.idea_parser_prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        0
+      ],
+      "id": "a9a2b15b-180a-4026-8763-93281764f639",
+      "name": "LLM Idea Parser",
+      "credentials": {
+        "openAiApi": {
+          "id": "Z7Bop0DKJLVQi260",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nfunction findText(obj) {\n  const textFromOutput = obj.output?.[0]?.content?.[0]?.text;\n  if (typeof textFromOutput === \"string\" && textFromOutput.trim()) {\n    return textFromOutput;\n  }\n\n  if (typeof obj.text === \"string\" && obj.text.trim()) return obj.text;\n  if (typeof obj.content === \"string\" && obj.content.trim()) return obj.content;\n  if (typeof obj.message === \"string\" && obj.message.trim()) return obj.message;\n\n  throw new Error(\"LLM text output not found\");\n}\n\nfunction extractJson(rawText) {\n  let text = rawText.trim();\n\n  text = text\n    .replace(/^```json\\s*/i, \"\")\n    .replace(/^```\\s*/i, \"\")\n    .replace(/```$/i, \"\")\n    .trim();\n\n  const firstBrace = text.indexOf(\"{\");\n  const lastBrace = text.lastIndexOf(\"}\");\n\n  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {\n    throw new Error(\"Could not find JSON object in LLM output\");\n  }\n\n  const jsonText = text.slice(firstBrace, lastBrace + 1);\n\n  try {\n    return JSON.parse(jsonText);\n  } catch (error) {\n    throw new Error(`Failed to parse JSON from LLM output: ${error.message}`);\n  }\n}\n\nconst rawText = findText(item);\nconst parsed = extractJson(rawText);\n\nreturn [\n  {\n    json: {\n      id: parsed.id || \"idea_001\",\n\n      topic: parsed.topic || parsed.story_premise || \"\",\n      audience: parsed.audience || \"дети и семейная аудитория\",\n      platform: parsed.platform || \"YouTube Shorts / Reels\",\n      duration_seconds: Number(parsed.duration_seconds || 30),\n      tone: parsed.tone || \"тёплый, динамичный, мультяшный\",\n      goal: parsed.goal || \"создать короткую безопасную историю для детской и семейной аудитории\",\n      constraints: parsed.constraints || \"\",\n\n      content_category: parsed.content_category || \"\",\n      story_premise: parsed.story_premise || \"\",\n      main_character: parsed.main_character || {},\n      world: parsed.world || {},\n      plot: parsed.plot || {},\n      visual_direction: parsed.visual_direction || \"\",\n      safety_rules: Array.isArray(parsed.safety_rules) ? parsed.safety_rules : [],\n      negative_references: Array.isArray(parsed.negative_references) ? parsed.negative_references : [],\n\n      status: \"parsed_idea_ready\",\n      source: \"idea-parser-agent\",\n      raw_llm_text: rawText,\n      parsed_idea_json: parsed,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "99530b10-dfa8-466e-96b6-0df703407e8a",
+      "name": "Normalize Parsed Idea"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst queries = [\n  \"kids animation shorts\",\n  \"3D animated kids shorts\",\n  \"funny kids cartoon shorts\",\n  \"animated adventure shorts for kids\",\n  \"kids 3D story short\",\n  \"colorful cartoon shorts for children\",\n  \"family friendly animated shorts\",\n  \"game like kids animation shorts\",\n  \"cute character adventure shorts\",\n  \"kids cartoon transformation shorts\"\n];\n\nreturn queries.map((query, index) => ({\n  json: {\n    id: item.id || \"idea_001\",\n    source: \"youtube\",\n    query_id: `youtube_query_${String(index + 1).padStart(2, \"0\")}`,\n    query,\n    target_audience: item.target_audience,\n    platform: item.platform,\n    duration_seconds: Number(item.duration_seconds || 30),\n    trend_direction: item.trend_direction,\n    research_goal: item.research_goal,\n    safety_constraints: item.safety_constraints,\n    brand_constraints: item.brand_constraints,\n    output_goal: item.output_goal\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2128,
+        0
+      ],
+      "id": "0e6f5f5f-81f7-4d9d-8c10-2c9c8303a208",
+      "name": "Build Trend Source Queries"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "type",
+              "value": "video"
+            },
+            {
+              "name": "videoDuration",
+              "value": "short"
+            },
+            {
+              "name": "order",
+              "value": "viewCount"
+            },
+            {
+              "name": "publishedAfter",
+              "value": "={{ new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString() }}"
+            },
+            {
+              "name": "maxResults",
+              "value": "={{ $env.YOUTUBE_MAX_RESULTS || 10 }}"
+            },
+            {
+              "name": "regionCode",
+              "value": "={{ $env.YOUTUBE_REGION_CODE || \"US\" }}"
+            },
+            {
+              "name": "relevanceLanguage",
+              "value": "={{ $env.YOUTUBE_RELEVANCE_LANGUAGE || \"en\" }}"
+            },
+            {
+              "name": "key",
+              "value": "={{ $env.YOUTUBE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1920,
+        0
+      ],
+      "id": "4d8dd5fc-2ec9-4f1f-a6d4-abd66628aa06",
+      "name": "YouTube Search Collector"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst out = [];\n\nfor (const item of items) {\n  const source = item.json;\n  const results = source.items || [];\n\n  for (const result of results) {\n    const videoId = result.id?.videoId;\n    if (!videoId) continue;\n\n    out.push({\n      json: {\n        source: \"youtube\",\n        query_id: source.query_id || \"\",\n        query: source.query || \"\",\n        video_id: videoId,\n        title: result.snippet?.title || \"\",\n        description: result.snippet?.description || \"\",\n        channel_id: result.snippet?.channelId || \"\",\n        channel_title: result.snippet?.channelTitle || \"\",\n        published_at: result.snippet?.publishedAt || \"\",\n        thumbnail_url:\n          result.snippet?.thumbnails?.high?.url ||\n          result.snippet?.thumbnails?.medium?.url ||\n          result.snippet?.thumbnails?.default?.url ||\n          \"\"\n      }\n    });\n  }\n}\n\nconst unique = new Map();\n\nfor (const item of out) {\n  if (!unique.has(item.json.video_id)) {\n    unique.set(item.json.video_id, item);\n  }\n}\n\nreturn Array.from(unique.values());"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1712,
+        0
+      ],
+      "id": "b3e18cda-6845-4c43-a84a-1ae8f13ba0dc",
+      "name": "Normalize YouTube Search Results"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst videoIds = items\n  .map((item) => item.json.video_id)\n  .filter(Boolean);\n\nconst uniqueIds = [...new Set(videoIds)];\n\nconst chunks = [];\nconst chunkSize = 50;\n\nfor (let i = 0; i < uniqueIds.length; i += chunkSize) {\n  chunks.push(uniqueIds.slice(i, i + chunkSize));\n}\n\nreturn chunks.map((chunk, index) => ({\n  json: {\n    source: \"youtube\",\n    batch_id: `youtube_stats_batch_${String(index + 1).padStart(2, \"0\")}`,\n    video_ids: chunk,\n    video_ids_csv: chunk.join(\",\"),\n    video_count: chunk.length\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1504,
+        0
+      ],
+      "id": "5befa85a-125a-457e-bbaa-f78480e68f56",
+      "name": "Build YouTube Stats Requests"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet,statistics,contentDetails"
+            },
+            {
+              "name": "id",
+              "value": "={{ $json.video_ids_csv }}"
+            },
+            {
+              "name": "key",
+              "value": "={{ $env.YOUTUBE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1296,
+        0
+      ],
+      "id": "91f4aceb-3dcb-4507-ab84-12cde6c842a5",
+      "name": "YouTube Video Stats Collector"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst out = [];\n\nfunction parseIsoDurationToSeconds(duration) {\n  if (!duration || typeof duration !== \"string\") return null;\n\n  const match = duration.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);\n  if (!match) return null;\n\n  const hours = Number(match[1] || 0);\n  const minutes = Number(match[2] || 0);\n  const seconds = Number(match[3] || 0);\n\n  return hours * 3600 + minutes * 60 + seconds;\n}\n\nfor (const item of items) {\n  const videos = item.json.items || [];\n\n  for (const video of videos) {\n    const stats = video.statistics || {};\n    const snippet = video.snippet || {};\n    const contentDetails = video.contentDetails || {};\n    const thumbnails = snippet.thumbnails || {};\n\n    const durationSeconds = parseIsoDurationToSeconds(contentDetails.duration);\n\n    out.push({\n      json: {\n        source: \"youtube\",\n        video_id: video.id,\n        title: snippet.title || \"\",\n        description: snippet.description || \"\",\n        channel_id: snippet.channelId || \"\",\n        channel_title: snippet.channelTitle || \"\",\n        published_at: snippet.publishedAt || \"\",\n        default_language: snippet.defaultLanguage || \"\",\n        default_audio_language: snippet.defaultAudioLanguage || \"\",\n        tags: snippet.tags || [],\n        category_id: snippet.categoryId || \"\",\n        duration_iso: contentDetails.duration || \"\",\n        duration_seconds: durationSeconds,\n        licensed_content: contentDetails.licensedContent ?? null,\n        definition: contentDetails.definition || \"\",\n        caption: contentDetails.caption || \"\",\n        view_count: Number(stats.viewCount || 0),\n        like_count: Number(stats.likeCount || 0),\n        comment_count: Number(stats.commentCount || 0),\n        thumbnail_url:\n          thumbnails.maxres?.url ||\n          thumbnails.standard?.url ||\n          thumbnails.high?.url ||\n          thumbnails.medium?.url ||\n          thumbnails.default?.url ||\n          \"\"\n      }\n    });\n  }\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        0
+      ],
+      "id": "678d5e5d-e501-476a-8bd2-084c9029c0e6",
+      "name": "Normalize YouTube Video Stats"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst now = new Date();\n\nfunction daysSince(dateString) {\n  const date = new Date(dateString);\n  if (Number.isNaN(date.getTime())) return null;\n\n  const diffMs = now.getTime() - date.getTime();\n  return Math.max(1, Math.floor(diffMs / (1000 * 60 * 60 * 24)));\n}\n\nfunction includesAny(text, words) {\n  const lower = String(text || \"\").toLowerCase();\n  return words.some((word) => lower.includes(word.toLowerCase()));\n}\n\nfunction countMatches(text, words) {\n  const lower = String(text || \"\").toLowerCase();\n  return words.reduce((count, word) => {\n    return lower.includes(word.toLowerCase()) ? count + 1 : count;\n  }, 0);\n}\n\nconst positiveKidsSignals = [\n  \"kids\",\n  \"children\",\n  \"baby\",\n  \"toddler\",\n  \"preschool\",\n  \"nursery\",\n  \"rhymes\",\n  \"cartoon\",\n  \"animation\",\n  \"animated\",\n  \"3d\",\n  \"shorts\",\n  \"learn\",\n  \"learning\",\n  \"fun\",\n  \"family\",\n  \"friendly\",\n  \"toy\",\n  \"colors\",\n  \"numbers\",\n  \"animals\",\n  \"song\",\n  \"story\",\n  \"adventure\",\n  \"good habits\",\n  \"sharing\",\n  \"caring\",\n  \"manners\"\n];\n\nconst trendMechanicSignals = [\n  \"what's inside\",\n  \"whose\",\n  \"guess\",\n  \"correct vs wrong\",\n  \"wrong\",\n  \"rules\",\n  \"challenge\",\n  \"game\",\n  \"learning game\",\n  \"transformation\",\n  \"secret\",\n  \"magic\",\n  \"surprise\",\n  \"colors\",\n  \"numbers\",\n  \"sharing\",\n  \"good habits\",\n  \"dress-up\",\n  \"face\",\n  \"animal\",\n  \"car\",\n  \"room\"\n];\n\nconst unsafeWords = [\n  \"war\",\n  \"iran\",\n  \"israel\",\n  \"hormuz\",\n  \"attack\",\n  \"weapon\",\n  \"gun\",\n  \"blood\",\n  \"death\",\n  \"dead\",\n  \"kill\",\n  \"killing\",\n  \"pregnancy\",\n  \"reproductive\",\n  \"ovulation\",\n  \"uterus\",\n  \"embryo\",\n  \"anatomy\",\n  \"root canal\",\n  \"dental\",\n  \"dentist\",\n  \"cavity\",\n  \"tooth\",\n  \"teeth\",\n  \"medical\",\n  \"surgery\",\n  \"disease\",\n  \"infection\",\n  \"toilet\",\n  \"potty\",\n  \"poop\"\n];\n\nconst brandWords = [\n  \"disney\",\n  \"pixar\",\n  \"roblox\",\n  \"minecraft\",\n  \"lego\",\n  \"dreamworks\",\n  \"cocomelon\",\n  \"baby shark\",\n  \"spiderman\",\n  \"spider-man\",\n  \"batman\",\n  \"superman\",\n  \"hulk\",\n  \"marvel\",\n  \"dc\",\n  \"pokemon\",\n  \"poppy playtime\",\n  \"rainbow friends\"\n];\n\nconst adultOrNonKidsWords = [\n  \"professor\",\n  \"engineer\",\n  \"politics\",\n  \"news\",\n  \"finance\",\n  \"stock\",\n  \"crypto\",\n  \"adult\",\n  \"dating\",\n  \"casino\",\n  \"alcohol\"\n];\n\nconst scored = items.map((item) => {\n  const v = item.json;\n\n  const joinedText = [\n    v.title,\n    v.description,\n    v.channel_title,\n    Array.isArray(v.tags) ? v.tags.join(\" \") : \"\"\n  ].join(\" \");\n\n  const ageDays = daysSince(v.published_at);\n  const viewCount = Number(v.view_count || 0);\n  const likeCount = Number(v.like_count || 0);\n  const commentCount = Number(v.comment_count || 0);\n  const durationSeconds = Number(v.duration_seconds || 0);\n\n  const viewsPerDay = ageDays ? viewCount / ageDays : 0;\n  const likeRate = viewCount > 0 ? likeCount / viewCount : 0;\n  const commentRate = viewCount > 0 ? commentCount / viewCount : 0;\n\n  const kidsSignalCount = countMatches(joinedText, positiveKidsSignals);\n  const trendMechanicCount = countMatches(joinedText, trendMechanicSignals);\n\n  const unsafeFlag = includesAny(joinedText, unsafeWords);\n  const brandFlag = includesAny(joinedText, brandWords);\n  const nonKidsFlag = includesAny(joinedText, adultOrNonKidsWords);\n\n  const durationFit =\n    durationSeconds >= 7 && durationSeconds <= 45\n      ? 1\n      : durationSeconds > 45 && durationSeconds <= 60\n        ? 0.5\n        : 0;\n\n  const isLikelyKids = kidsSignalCount >= 2;\n  const isLikelyTrendUseful = trendMechanicCount >= 1;\n\n  let score = 0;\n\n  score += Math.log10(viewCount + 1) * 18;\n  score += Math.log10(viewsPerDay + 1) * 28;\n  score += Math.min(likeRate * 1000, 20);\n  score += Math.min(commentRate * 2000, 10);\n  score += kidsSignalCount * 3;\n  score += trendMechanicCount * 6;\n  score += durationFit * 12;\n\n  if (unsafeFlag) score -= 55;\n  if (brandFlag) score -= 35;\n  if (nonKidsFlag) score -= 25;\n  if (!isLikelyKids) score -= 30;\n  if (!isLikelyTrendUseful) score -= 12;\n\n  const verdict =\n    unsafeFlag\n      ? \"reject_unsafe\"\n      : brandFlag\n        ? \"reject_brand_risk\"\n        : !isLikelyKids\n          ? \"reject_not_kids\"\n          : durationFit === 0\n            ? \"reject_duration\"\n            : score >= 130\n              ? \"strong_candidate\"\n              : score >= 95\n                ? \"candidate\"\n                : \"weak_candidate\";\n\n  return {\n    json: {\n      ...v,\n      age_days: ageDays,\n      views_per_day: Math.round(viewsPerDay),\n      like_rate: Number(likeRate.toFixed(6)),\n      comment_rate: Number(commentRate.toFixed(6)),\n      kids_signal_count: kidsSignalCount,\n      trend_mechanic_count: trendMechanicCount,\n      duration_fit: durationFit,\n      unsafe_flag: unsafeFlag,\n      brand_flag: brandFlag,\n      non_kids_flag: nonKidsFlag,\n      trend_score: Number(score.toFixed(2)),\n      verdict\n    }\n  };\n});\n\nscored.sort((a, b) => b.json.trend_score - a.json.trend_score);\n\nreturn scored;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        0
+      ],
+      "id": "2a2c18f5-78ca-4e44-8bd1-f296f3bd8b19",
+      "name": "Score Trend Candidates"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst allowedVerdicts = new Set([\n  \"strong_candidate\",\n  \"candidate\"\n]);\n\nconst candidates = items\n  .map((item) => item.json)\n  .filter((item) => allowedVerdicts.has(item.verdict))\n  .filter((item) => item.unsafe_flag !== true)\n  .filter((item) => item.brand_flag !== true)\n  .filter((item) => item.non_kids_flag !== true)\n  .filter((item) => Number(item.duration_seconds || 0) >= 7)\n  .filter((item) => Number(item.duration_seconds || 0) <= 45)\n  .sort((a, b) => Number(b.trend_score || 0) - Number(a.trend_score || 0));\n\nconst top = candidates.slice(0, 12);\n\nconst rejectedSummary = {\n  total_input: items.length,\n  total_allowed_candidates: candidates.length,\n  selected_count: top.length,\n  rejected_unsafe: items.filter((item) => item.json.unsafe_flag === true).length,\n  rejected_brand_risk: items.filter((item) => item.json.brand_flag === true).length,\n  rejected_non_kids: items.filter((item) => item.json.non_kids_flag === true).length\n};\n\nconst trendPatterns = {\n  recurring_mechanics: [\n    \"simple object transformation\",\n    \"guessing game\",\n    \"correct vs wrong comparison\",\n    \"sharing / good behavior lesson\",\n    \"colors and numbers learning\",\n    \"secret room or hidden object\",\n    \"vehicle or animal identification\",\n    \"fast visual problem then quick resolution\"\n  ],\n  pacing_notes: [\n    \"visual hook in the first 1–2 seconds\",\n    \"one clear action per scene\",\n    \"short loopable structure\",\n    \"bright object appears early\",\n    \"large readable character emotion\",\n    \"minimal plot complexity\"\n  ],\n  visual_notes: [\n    \"bright 3D cartoon look\",\n    \"toy-like objects and characters\",\n    \"high color contrast\",\n    \"clean simple backgrounds\",\n    \"large central object\",\n    \"safe soft comedy\",\n    \"expressive but non-scary faces\"\n  ],\n  safety_notes: [\n    \"do not copy known characters or franchises\",\n    \"avoid brand-like worlds and named IP\",\n    \"avoid medical, war, political, scary or adult contexts\",\n    \"avoid dangerous challenges\",\n    \"avoid text rendered inside generated images\"\n  ]\n};\n\nreturn [\n  {\n    json: {\n      status: \"trend_references_selected\",\n      source: \"youtube_trend_collector\",\n      selected_at: new Date().toISOString(),\n      rejected_summary: rejectedSummary,\n      trend_patterns: trendPatterns,\n      top_references: top.map((item, index) => ({\n        rank: index + 1,\n        video_id: item.video_id,\n        title: item.title,\n        channel_title: item.channel_title,\n        published_at: item.published_at,\n        duration_seconds: item.duration_seconds,\n        view_count: item.view_count,\n        views_per_day: item.views_per_day,\n        like_rate: item.like_rate,\n        trend_score: item.trend_score,\n        verdict: item.verdict,\n        kids_signal_count: item.kids_signal_count,\n        trend_mechanic_count: item.trend_mechanic_count,\n        thumbnail_url: item.thumbnail_url,\n        reference_url: `https://www.youtube.com/watch?v=${item.video_id}`\n      }))\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        0
+      ],
+      "id": "5f56c81f-f307-4c57-b76a-7ae551efadcf",
+      "name": "Select Top Trend References"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst topReferences = item.top_references || [];\nconst trendPatterns = item.trend_patterns || {};\nconst rejectedSummary = item.rejected_summary || {};\n\nconst prompt = `\nТы Trend Research Analyst для production-системы генерации коротких вертикальных видео.\n\nКонтекст:\nМы строим content-machine для детского short-form видео.\nПеред тобой не гипотеза, а выборка YouTube-кандидатов, собранная через API, отфильтрованная и отсортированная по trend_score.\n\nТвоя задача:\n1. Извлечь абстрактные трендовые механики.\n2. Не копировать конкретные видео, названия, персонажей, каналы, бренды, визуальную айдентику или франшизы.\n3. Сформировать безопасный и оригинальный trend brief.\n4. Подготовить brief, который потом можно передать сценарному агенту.\n\nВажно:\n- Не используй прямые ссылки, названия каналов и video_id как творческие референсы для копирования.\n- Используй источники только как аналитические сигналы.\n- Не предлагай Disney, Pixar, Roblox, Minecraft, LEGO, DreamWorks или похожие IP-направления.\n- Не делай «милый добрый сюжет» по умолчанию.\n- Фокус должен быть на удержании внимания детей в short-form: быстрый хук, простая миссия, понятный визуальный цикл, повторяемая механика, яркая трансформация, короткая развязка.\n- Не использовать текст внутри генерируемого изображения или видео. Любой on-screen text будет добавляться позже на монтажном слое.\n- Ответ строго в JSON. Без markdown. Без комментариев до или после JSON.\n\nДанные отбора:\n${JSON.stringify(rejectedSummary, null, 2)}\n\nПредварительно найденные паттерны:\n${JSON.stringify(trendPatterns, null, 2)}\n\nТоп отобранных YouTube-кандидатов:\n${JSON.stringify(topReferences, null, 2)}\n\nВерни JSON строго такой структуры:\n\n{\n  \"id\": \"idea_001\",\n  \"status\": \"trend_brief_ready\",\n  \"trend_brief_title\": \"\",\n  \"source_summary\": {\n    \"total_input\": 0,\n    \"selected_references\": 0,\n    \"safe_candidate_count\": 0,\n    \"excluded_unsafe_count\": 0,\n    \"excluded_brand_risk_count\": 0,\n    \"main_observation\": \"\"\n  },\n  \"trend_insights\": [\n    {\n      \"insight\": \"\",\n      \"why_it_matters_for_retention\": \"\",\n      \"how_to_use_originally\": \"\"\n    }\n  ],\n  \"recommended_content_patterns\": [\n    {\n      \"pattern_name\": \"\",\n      \"description\": \"\",\n      \"retention_mechanic\": \"\",\n      \"safe_original_usage\": \"\"\n    }\n  ],\n  \"recommended_hook_types\": [],\n  \"recommended_story_mechanics\": [],\n  \"recommended_visual_mechanics\": [],\n  \"recommended_character_archetypes\": [],\n  \"recommended_pacing\": {\n    \"first_2_seconds\": \"\",\n    \"middle\": \"\",\n    \"ending\": \"\",\n    \"loop_logic\": \"\"\n  },\n  \"selected_direction\": {\n    \"content_pattern\": \"\",\n    \"hook_type\": \"\",\n    \"character_archetype\": \"\",\n    \"story_mechanic\": \"\",\n    \"visual_mechanic\": \"\",\n    \"reason\": \"\"\n  },\n  \"safety_rules\": [],\n  \"brand_ip_exclusions\": [],\n  \"negative_generation_rules\": [],\n  \"brief_for_idea_parser\": \"\"\n}\n`;\n\nreturn [\n  {\n    json: {\n      id: \"idea_001\",\n      status: \"trend_research_prompt_ready\",\n      source: \"build-trend-research-prompt\",\n      trend_references: item,\n      trend_research_prompt: prompt.trim(),\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        0
+      ],
+      "id": "5f929492-3aa2-4f9a-8815-b939c7670c37",
+      "name": "Build Trend Research Prompt1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.5",
+          "mode": "list",
+          "cachedResultName": "GPT-5.5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.trend_research_prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -176,
+        0
+      ],
+      "id": "bbe14dbe-1cbd-4af8-a907-6933188a1bcd",
+      "name": "LLM Trend Research Analyst",
+      "credentials": {
+        "openAiApi": {
+          "id": "Z7Bop0DKJLVQi260",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        0
+      ],
+      "id": "ce29f3ac-eafa-49b3-b689-ec29061d51cf",
+      "name": "Normalize Trend Brief"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Raw Idea Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Script Prompt": {
+      "main": [
+        [
+          {
+            "node": "LLM Script Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Script Generator": {
+      "main": [
+        [
+          {
+            "node": "Normalize Script Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Script Output": {
+      "main": [
+        [
+          {
+            "node": "Build Video Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Video Payload": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Output": {
+      "main": [
+        [
+          {
+            "node": "Build Video Pipeline JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Video Pipeline JSON": {
+      "main": [
+        [
+          {
+            "node": "Build Higgsfield Scene Packages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Higgsfield Scene Packages": {
+      "main": [
+        [
+          {
+            "node": "Split Scene Packages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Scene Packages": {
+      "main": [
+        [
+          {
+            "node": "Keep Scene 01 Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Scene 01 Only": {
+      "main": [
+        [
+          {
+            "node": "Build Soul Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Soul Image": {
+      "main": [
+        [
+          {
+            "node": "Wait for Soul Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Soul Render": {
+      "main": [
+        [
+          {
+            "node": "Check Soul Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Soul Status": {
+      "main": [
+        [
+          {
+            "node": "Normalize Keyframe Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Keyframe Result": {
+      "main": [
+        [
+          {
+            "node": "Build DoP Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build DoP Payload": {
+      "main": [
+        [
+          {
+            "node": "Create DoP Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create DoP Video": {
+      "main": [
+        [
+          {
+            "node": "Wait for DoP Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for DoP Render": {
+      "main": [
+        [
+          {
+            "node": "Check DoP Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DoP Status": {
+      "main": [
+        [
+          {
+            "node": "Normalize Scene Video Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Soul Payload": {
+      "main": [
+        [
+          {
+            "node": "Create Soul Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Raw Idea Input": {
+      "main": [
+        [
+          {
+            "node": "Build Trend Source Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Idea Parser Prompt": {
+      "main": [
+        [
+          {
+            "node": "LLM Idea Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Idea Parser": {
+      "main": [
+        [
+          {
+            "node": "Normalize Parsed Idea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Parsed Idea": {
+      "main": [
+        [
+          {
+            "node": "Normalize Trend Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Trend Source Queries": {
+      "main": [
+        [
+          {
+            "node": "YouTube Search Collector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Search Collector": {
+      "main": [
+        [
+          {
+            "node": "Normalize YouTube Search Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize YouTube Search Results": {
+      "main": [
+        [
+          {
+            "node": "Build YouTube Stats Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build YouTube Stats Requests": {
+      "main": [
+        [
+          {
+            "node": "YouTube Video Stats Collector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Video Stats Collector": {
+      "main": [
+        [
+          {
+            "node": "Normalize YouTube Video Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize YouTube Video Stats": {
+      "main": [
+        [
+          {
+            "node": "Score Trend Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Trend Candidates": {
+      "main": [
+        [
+          {
+            "node": "Select Top Trend References",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Top Trend References": {
+      "main": [
+        [
+          {
+            "node": "Build Trend Research Prompt1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Trend Research Prompt1": {
+      "main": [
+        [
+          {
+            "node": "LLM Trend Research Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Trend Research Analyst": {
+      "main": [
+        [
+          {
+            "node": "Build Idea Parser Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Trend Brief": {
+      "main": [
+        [
+          {
+            "node": "Build Script Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fac5c300-d7ef-4d1c-9307-89d22d754c46",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
+  },
+  "id": "cJ2T7qvJT1mkZnjD",
+  "tags": []
+}
