@@ -1,0 +1,346 @@
+{
+  "name": "Test Higgsfield Soul Scene 01",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0f9c12c5-3064-489e-9503-bb8fb7d3b842",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      scene_id: \"scene_01\",\n      source: \"keyframe-generation-layer\",\n      provider: \"higgsfield\",\n      model: \"soul\",\n      soul_endpoint: \"/v1/text2image/soul\",\n      soul_payload: {\n        params: {\n          seed: null,\n          prompt: \"A premium cinematic keyframe of a hockey jersey close-up on a design table, modern sports-tech studio, subtle AI interface glow in the background, black white teal orange accents, high-end commercial product photography, vertical 9:16, clean composition, shallow depth of field\",\n          quality: \"720p\",\n          batch_size: 1,\n          enhance_prompt: true,\n          style_strength: 1,\n          width_and_height: \"1152x2048\"\n        },\n        webhook: null\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5c39d0cf-19c8-4f6c-8c75-1af1a7aab0c2",
+      "name": "Build Soul Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + $json.soul_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.soul_payload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b863ce8c-9ca5-4de3-b3a4-0b22a0eae995",
+      "name": "Create Soul Image"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "22b5ca2f-561a-484f-b0e0-d659a46dad6c",
+      "name": "Wait for Soul Render",
+      "webhookId": "00e12a71-f155-4ec6-a445-db2375331706"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + \"/requests/\" + $json.id + \"/status\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        832,
+        0
+      ],
+      "id": "2ddec943-a9cb-4b9b-ad94-c29defbadf7a",
+      "name": "Check Soul Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (item.status !== \"completed\") {\n  return [\n    {\n      json: {\n        status: \"not_ready\",\n        provider_status: item.status,\n        request_id: item.request_id,\n        status_url: item.status_url,\n        source: \"higgsfield-soul\"\n      }\n    }\n  ];\n}\n\nconst keyframeUrl = item.images?.[0]?.url;\n\nif (!keyframeUrl) {\n  throw new Error(\"Soul completed, but images[0].url was not found\");\n}\n\nreturn [\n  {\n    json: {\n      scene_id: \"scene_01\",\n      keyframe_status: \"ready\",\n      keyframe_request_id: item.request_id,\n      keyframe_url: keyframeUrl,\n      source: \"higgsfield-soul\",\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "28c910a8-a920-485e-bab0-624f23293e27",
+      "name": "Normalize Keyframe Result"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (item.keyframe_status !== \"ready\") {\n  throw new Error(\"Keyframe is not ready\");\n}\n\nreturn [\n  {\n    json: {\n      scene_id: item.scene_id,\n      source: \"higgsfield-dop-turbo\",\n      provider: \"higgsfield\",\n      model: \"dop-turbo\",\n      dop_endpoint: \"/higgsfield-ai/dop/turbo\",\n      keyframe_url: item.keyframe_url,\n      dop_payload: {\n        seed: null,\n        prompt: \"A cinematic close-up of a premium hockey jersey on a design table, modern sports-tech studio, AI interface glow in the background, black white teal orange accents, vertical 9:16, premium commercial look\",\n        motions: null,\n        image_url: item.keyframe_url,\n        enhance_prompt: true\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "2aff46f5-bf7b-4168-9de7-fe77b2da927c",
+      "name": "Build DoP Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + $json.dop_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.dop_payload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "573d0d05-68a0-489a-a81b-f49e48c2756e",
+      "name": "Create DoP Video"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        0
+      ],
+      "id": "4aa8b640-7a6e-4661-a3c8-35bc547d0f24",
+      "name": "Wait for DoP Render",
+      "webhookId": "c57b61ab-908b-4130-87ad-8c82c5ac98b0"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + \"/requests/\" + $json.request_id + \"/status\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1872,
+        0
+      ],
+      "id": "7f268673-1277-4c1c-8352-fe54d13f5e48",
+      "name": "Check DoP Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (item.status !== \"completed\") {\n  return [\n    {\n      json: {\n        status: \"not_ready\",\n        provider_status: item.status,\n        request_id: item.request_id,\n        status_url: item.status_url,\n        source: \"higgsfield-dop-turbo\"\n      }\n    }\n  ];\n}\n\nconst sceneVideoUrl = item.video?.url;\n\nif (!sceneVideoUrl) {\n  throw new Error(\"DoP completed, but video.url was not found\");\n}\n\nreturn [\n  {\n    json: {\n      scene_id: \"scene_01\",\n      scene_video_status: \"ready\",\n      video_request_id: item.request_id,\n      scene_video_url: sceneVideoUrl,\n      source: \"higgsfield-dop-turbo\",\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        0
+      ],
+      "id": "904ec793-f7fe-4b7b-9431-496402b1e5ed",
+      "name": "Normalize Scene Video Result"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Build Soul Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Soul Payload": {
+      "main": [
+        [
+          {
+            "node": "Create Soul Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Soul Image": {
+      "main": [
+        [
+          {
+            "node": "Wait for Soul Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Soul Render": {
+      "main": [
+        [
+          {
+            "node": "Check Soul Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Soul Status": {
+      "main": [
+        [
+          {
+            "node": "Normalize Keyframe Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Keyframe Result": {
+      "main": [
+        [
+          {
+            "node": "Build DoP Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build DoP Payload": {
+      "main": [
+        [
+          {
+            "node": "Create DoP Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create DoP Video": {
+      "main": [
+        [
+          {
+            "node": "Wait for DoP Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for DoP Render": {
+      "main": [
+        [
+          {
+            "node": "Check DoP Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DoP Status": {
+      "main": [
+        [
+          {
+            "node": "Normalize Scene Video Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e5e4ee1b-3ed5-4689-bd2e-884c734a09c5",
+  "meta": {
+    "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
+  },
+  "id": "Mf4KxqDpKZTXYhlQ",
+  "tags": []
+}
