@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\n\nconst prompt = `# Script Agent Prompt\n\nТы Script Agent для контент-машины вертикальных видео.\n\nТвоя задача: превратить входную идею в готовую структуру ролика для Reels, TikTok или YouTube Shorts.\n\n## Входные данные\n\nID идеи:\n${item.id}\n\nТема:\n${item.topic}\n\nЦелевая аудитория:\n${item.audience}\n\nПлатформа:\n${item.platform}\n\nДлительность:\n${item.duration_seconds} секунд\n\nТональность:\n${item.tone}\n\nЦель:\n${item.goal}\n\nОграничения:\n${item.constraints}\n\n## Требования к результату\n\nВерни результат строго в Markdown.\n\nСтруктура ответа:\n\n# ${item.id}. Сценарий вертикального видео\n\n## 1. Название ролика\n\nКороткое рабочее название.\n\n## 2. Цель ролика\n\nКратко объясни, что должен сделать ролик.\n\n## 3. Хук\n\nОдна сильная фраза для первых 1-3 секунд.\n\n## 4. Структура ролика\n\n| Блок | Время | Содержание | Визуал | Текст на экране |\n|---|---:|---|---|---|\n\nОбязательные блоки:\n\n- Hook;\n- Setup;\n- Main value;\n- Payoff;\n- CTA.\n\n## 5. Voiceover\n\nПолный текст озвучки.\n\n## 6. On-screen text\n\nСписок надписей на экране по сценам.\n\n## 7. Scene prompts\n\nДля каждой сцены укажи:\n\n- номер сцены;\n- что происходит;\n- визуальный стиль;\n- движение камеры;\n- важные ограничения.\n\n## 8. CTA\n\nФинальный призыв к действию.\n\n## 9. 5 альтернативных хуков\n\nСписок из пяти вариантов.\n\n## Ограничения\n\n- Не добавляй факты, которых нет во входных данных.\n- Не используй длинное вступление.\n- Не пиши канцеляритом.\n- Не делай сценарий длиннее указанной длительности.\n- Пиши на русском языке.\n- Делай текст пригодным для вертикального видео.`;\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      prompt,\n    },\n  },\n];"
+        "jsCode": "const item = $input.first().json;\n\nconst prompt = `# Script Agent Prompt\n\nТы Script Agent для production-системы коротких вертикальных детских видео.\n\nТвоя задача:\nпревратить structured creative brief в покадровую структуру короткого вертикального видео для YouTube Shorts / Reels.\n\nВажно:\n- Не делай объясняющий рекламный ролик.\n- Не делай generic “добрую историю” без retention-механики.\n- Сценарий должен работать визуально без текста в кадре.\n- Не добавляй текст, буквы, цифры, вывески, субтитры, логотипы или надписи в scene prompts.\n- Любой on-screen text будет добавлен позже монтажом, но генеративные кадры должны быть без текста.\n- Не копируй Disney, Pixar, Roblox, Minecraft, LEGO, DreamWorks, Marvel, DC, Nintendo, Cocomelon, Baby Shark и другие IP.\n- Не используй узнаваемые персонажи, миры, костюмы, транспорт, цветовые схемы или брендовые элементы.\n- Контент безопасен для детей и семейной аудитории.\n- Без страха, насилия, оружия, огня, аварий, медицины, опасных действий, токсичного поведения и взрослого контекста.\n- Длительность строго около ${item.duration_seconds || 18} секунд.\n- Пиши на русском языке.\n- Верни результат строго в Markdown.\n\n## Входной creative brief\n\nID:\n${item.id || \"idea_001\"}\n\nТема:\n${item.topic || \"\"}\n\nКатегория:\n${item.content_category || \"\"}\n\nАудитория:\n${item.audience || \"\"}\n\nПлатформа:\n${item.platform || \"\"}\n\nДлительность:\n${item.duration_seconds || 18} секунд\n\nТон:\n${item.tone || \"\"}\n\nЦель:\n${item.goal || \"\"}\n\nRetention strategy:\n${JSON.stringify(item.retention_strategy || {}, null, 2)}\n\nStory premise:\n${item.story_premise || \"\"}\n\nMain character:\n${JSON.stringify(item.main_character || {}, null, 2)}\n\nSupporting character:\n${JSON.stringify(item.supporting_character || {}, null, 2)}\n\nWorld:\n${JSON.stringify(item.world || {}, null, 2)}\n\nCentral object:\n${JSON.stringify(item.central_object || {}, null, 2)}\n\nPlot:\n${JSON.stringify(item.plot || {}, null, 2)}\n\nVisual direction:\n${item.visual_direction || \"\"}\n\nScene generation rules:\n${JSON.stringify(item.scene_generation_rules || {}, null, 2)}\n\nSafety rules:\n${JSON.stringify(item.safety_rules || [], null, 2)}\n\nBrand/IP exclusions:\n${JSON.stringify(item.brand_ip_exclusions || [], null, 2)}\n\nNegative references:\n${JSON.stringify(item.negative_references || [], null, 2)}\n\n## Требования к результату\n\nВерни Markdown строго такой структуры:\n\n# ${item.id || \"idea_001\"}. Сценарий вертикального видео\n\n## 1. Название ролика\n\nКороткое рабочее название без брендов и IP.\n\n## 2. Цель ролика\n\n1–2 предложения: какую retention-механику использует ролик.\n\n## 3. Хук\n\nОдна визуальная ситуация для первых 1–2 секунд. Без текста в кадре.\n\n## 4. Структура ролика\n\nСделай таблицу:\n\n| Блок | Время | Содержание | Визуал | Текст на экране |\n|---|---:|---|---|---|\n\nОбязательные блоки:\n- Hook\n- Error\n- Choice\n- Transformation\n- Payoff\n- Loop hint\n\nВажно:\n- В колонке “Визуал” описывай только то, что должен видеть генератор.\n- Визуал должен быть понятен без слов.\n- В колонке “Текст на экране” можно дать короткий текст для монтажа, но не добавлять его в генеративные scene prompts.\n\n## 5. Voiceover\n\nОчень короткая озвучка, простая для детского ролика.\nМожно использовать 4–7 коротких фраз.\nБез сложных слов.\n\n## 6. On-screen text\n\nСписок коротких надписей для монтажного слоя.\nНе больше 5 слов на строку.\n\n## 7. Scene prompts\n\nДля каждой сцены укажи:\n\n- scene number;\n- what happens;\n- visual style;\n- camera movement;\n- main object;\n- character emotion;\n- safety constraints;\n- negative constraints.\n\nКаждый scene prompt должен явно содержать:\nno text, no letters, no numbers, no subtitles, no signs, no logos, no watermark.\n\n## 8. CTA\n\nДля детского/family short-form сделай мягкий loop-CTA, без продажи и без давления.\n\n## 9. 5 альтернативных хуков\n\nПять вариантов визуального хука для первых 1–2 секунд.\n\n## Ограничения\n\n- Не добавляй факты, которых нет во входном brief.\n- Не используй бренды, IP и узнаваемые франшизы.\n- Не используй опасные действия.\n- Не делай длинные диалоги.\n- Не добавляй текст внутрь генеративных сцен.\n- Делай сцены пригодными для Higgsfield keyframe/video generation.\n`;\n\nreturn [\n  {\n    json: {\n      id: item.id || \"idea_001\",\n      status: \"script_prompt_ready\",\n      source: \"build-script-prompt-from-parsed-idea\",\n      parsed_idea: item,\n      prompt: prompt.trim(),\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -439,7 +439,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
+        400,
         0
       ],
       "id": "3f382400-0493-4edb-b196-1c585f4d56ba",
@@ -480,12 +480,12 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\n\nfunction findText(obj) {\n  const textFromOutput = obj.output?.[0]?.content?.[0]?.text;\n  if (typeof textFromOutput === \"string\" && textFromOutput.trim()) {\n    return textFromOutput;\n  }\n\n  if (typeof obj.text === \"string\" && obj.text.trim()) return obj.text;\n  if (typeof obj.content === \"string\" && obj.content.trim()) return obj.content;\n  if (typeof obj.message === \"string\" && obj.message.trim()) return obj.message;\n\n  throw new Error(\"LLM text output not found\");\n}\n\nfunction extractJson(rawText) {\n  let text = rawText.trim();\n\n  text = text\n    .replace(/^```json\\s*/i, \"\")\n    .replace(/^```\\s*/i, \"\")\n    .replace(/```$/i, \"\")\n    .trim();\n\n  const firstBrace = text.indexOf(\"{\");\n  const lastBrace = text.lastIndexOf(\"}\");\n\n  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {\n    throw new Error(\"Could not find JSON object in LLM output\");\n  }\n\n  const jsonText = text.slice(firstBrace, lastBrace + 1);\n\n  try {\n    return JSON.parse(jsonText);\n  } catch (error) {\n    throw new Error(`Failed to parse JSON from LLM output: ${error.message}`);\n  }\n}\n\nconst rawText = findText(item);\nconst parsed = extractJson(rawText);\n\nreturn [\n  {\n    json: {\n      id: parsed.id || \"idea_001\",\n\n      topic: parsed.topic || parsed.story_premise || \"\",\n      audience: parsed.audience || \"дети и семейная аудитория\",\n      platform: parsed.platform || \"YouTube Shorts / Reels\",\n      duration_seconds: Number(parsed.duration_seconds || 30),\n      tone: parsed.tone || \"тёплый, динамичный, мультяшный\",\n      goal: parsed.goal || \"создать короткую безопасную историю для детской и семейной аудитории\",\n      constraints: parsed.constraints || \"\",\n\n      content_category: parsed.content_category || \"\",\n      story_premise: parsed.story_premise || \"\",\n      main_character: parsed.main_character || {},\n      world: parsed.world || {},\n      plot: parsed.plot || {},\n      visual_direction: parsed.visual_direction || \"\",\n      safety_rules: Array.isArray(parsed.safety_rules) ? parsed.safety_rules : [],\n      negative_references: Array.isArray(parsed.negative_references) ? parsed.negative_references : [],\n\n      status: \"parsed_idea_ready\",\n      source: \"idea-parser-agent\",\n      raw_llm_text: rawText,\n      parsed_idea_json: parsed,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+        "jsCode": "const item = $input.first().json;\n\nconst rawText =\n  item.output?.[0]?.content?.[0]?.text ||\n  item.output?.content?.[0]?.text ||\n  item.content?.[0]?.text ||\n  item.text ||\n  \"\";\n\nif (!rawText || typeof rawText !== \"string\") {\n  throw new Error(\"Parsed idea text not found in LLM output\");\n}\n\nfunction extractJson(text) {\n  const cleaned = text\n    .replace(/^```json\\s*/i, \"\")\n    .replace(/^```\\s*/i, \"\")\n    .replace(/```$/i, \"\")\n    .trim();\n\n  try {\n    return JSON.parse(cleaned);\n  } catch (directError) {\n    const firstBrace = cleaned.indexOf(\"{\");\n    const lastBrace = cleaned.lastIndexOf(\"}\");\n\n    if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {\n      throw new Error(\"No JSON object found in parsed idea text\");\n    }\n\n    const jsonCandidate = cleaned.slice(firstBrace, lastBrace + 1);\n    return JSON.parse(jsonCandidate);\n  }\n}\n\nconst parsed = extractJson(rawText);\n\nconst requiredFields = [\n  \"id\",\n  \"topic\",\n  \"content_category\",\n  \"audience\",\n  \"platform\",\n  \"duration_seconds\",\n  \"tone\",\n  \"goal\",\n  \"retention_strategy\",\n  \"story_premise\",\n  \"main_character\",\n  \"world\",\n  \"central_object\",\n  \"plot\",\n  \"visual_direction\",\n  \"scene_generation_rules\"\n];\n\nfor (const field of requiredFields) {\n  if (parsed[field] === undefined || parsed[field] === null) {\n    throw new Error(`Parsed idea missing required field: ${field}`);\n  }\n}\n\nreturn [\n  {\n    json: {\n      id: parsed.id || \"idea_001\",\n      status: \"parsed_idea_ready\",\n      source: \"normalize-parsed-idea\",\n\n      topic: parsed.topic || \"\",\n      content_category: parsed.content_category || \"\",\n      audience: parsed.audience || \"дети и семейная аудитория\",\n      platform: parsed.platform || \"YouTube Shorts / Reels\",\n      duration_seconds: Number(parsed.duration_seconds || 18),\n      tone: parsed.tone || \"\",\n      goal: parsed.goal || \"\",\n\n      retention_strategy: parsed.retention_strategy || {},\n      story_premise: parsed.story_premise || \"\",\n      main_character: parsed.main_character || {},\n      supporting_character: parsed.supporting_character || {},\n      world: parsed.world || {},\n      central_object: parsed.central_object || {},\n      plot: parsed.plot || {},\n\n      visual_direction: parsed.visual_direction || \"\",\n      scene_generation_rules: parsed.scene_generation_rules || {},\n\n      safety_rules: Array.isArray(parsed.safety_rules) ? parsed.safety_rules : [],\n      brand_ip_exclusions: Array.isArray(parsed.brand_ip_exclusions)\n        ? parsed.brand_ip_exclusions\n        : [],\n      negative_references: Array.isArray(parsed.negative_references)\n        ? parsed.negative_references\n        : [],\n\n      brief_source: parsed.brief_source || \"trend_brief\",\n      raw_parsed_idea_json: parsed,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        896,
+        1024,
         0
       ],
       "id": "99530b10-dfa8-466e-96b6-0df703407e8a",
@@ -693,7 +693,7 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 2.3,
       "position": [
-        -176,
+        -240,
         0
       ],
       "id": "bbe14dbe-1cbd-4af8-a907-6933188a1bcd",
@@ -712,10 +712,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1104,
-        0
+        1088,
+        -208
       ],
       "id": "ce29f3ac-eafa-49b3-b689-ec29061d51cf",
+      "name": "Normalize Trend Brief1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst rawText =\n  item.output?.[0]?.content?.[0]?.text ||\n  item.output?.content?.[0]?.text ||\n  item.content?.[0]?.text ||\n  item.text ||\n  \"\";\n\nif (!rawText || typeof rawText !== \"string\") {\n  throw new Error(\"Trend brief text not found in LLM output\");\n}\n\nfunction extractJson(text) {\n  const cleaned = text\n    .replace(/^```json\\s*/i, \"\")\n    .replace(/^```\\s*/i, \"\")\n    .replace(/```$/i, \"\")\n    .trim();\n\n  try {\n    return JSON.parse(cleaned);\n  } catch (directError) {\n    const firstBrace = cleaned.indexOf(\"{\");\n    const lastBrace = cleaned.lastIndexOf(\"}\");\n\n    if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {\n      throw new Error(\"No JSON object found in trend brief text\");\n    }\n\n    const jsonCandidate = cleaned.slice(firstBrace, lastBrace + 1);\n    return JSON.parse(jsonCandidate);\n  }\n}\n\nconst parsed = extractJson(rawText);\n\nconst requiredFields = [\n  \"id\",\n  \"status\",\n  \"trend_brief_title\",\n  \"source_summary\",\n  \"trend_insights\",\n  \"recommended_content_patterns\",\n  \"selected_direction\",\n  \"brief_for_idea_parser\"\n];\n\nfor (const field of requiredFields) {\n  if (parsed[field] === undefined || parsed[field] === null) {\n    throw new Error(`Trend brief missing required field: ${field}`);\n  }\n}\n\nreturn [\n  {\n    json: {\n      id: parsed.id || \"idea_001\",\n      status: \"trend_brief_normalized\",\n      source: \"normalize-trend-brief\",\n      trend_brief_title: parsed.trend_brief_title || \"\",\n      source_summary: parsed.source_summary || {},\n      trend_insights: Array.isArray(parsed.trend_insights) ? parsed.trend_insights : [],\n      recommended_content_patterns: Array.isArray(parsed.recommended_content_patterns)\n        ? parsed.recommended_content_patterns\n        : [],\n      recommended_hook_types: Array.isArray(parsed.recommended_hook_types)\n        ? parsed.recommended_hook_types\n        : [],\n      recommended_story_mechanics: Array.isArray(parsed.recommended_story_mechanics)\n        ? parsed.recommended_story_mechanics\n        : [],\n      recommended_visual_mechanics: Array.isArray(parsed.recommended_visual_mechanics)\n        ? parsed.recommended_visual_mechanics\n        : [],\n      recommended_character_archetypes: Array.isArray(parsed.recommended_character_archetypes)\n        ? parsed.recommended_character_archetypes\n        : [],\n      recommended_pacing: parsed.recommended_pacing || {},\n      selected_direction: parsed.selected_direction || {},\n      safety_rules: Array.isArray(parsed.safety_rules) ? parsed.safety_rules : [],\n      brand_ip_exclusions: Array.isArray(parsed.brand_ip_exclusions)\n        ? parsed.brand_ip_exclusions\n        : [],\n      negative_generation_rules: Array.isArray(parsed.negative_generation_rules)\n        ? parsed.negative_generation_rules\n        : [],\n      brief_for_idea_parser: parsed.brief_for_idea_parser || \"\",\n      raw_trend_brief_json: parsed,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        0
+      ],
+      "id": "79fb92d3-7e9a-40f8-b971-f035b6ddd063",
       "name": "Normalize Trend Brief"
     }
   ],
@@ -967,7 +980,7 @@
       "main": [
         [
           {
-            "node": "Normalize Trend Brief",
+            "node": "Build Script Prompt",
             "type": "main",
             "index": 0
           }
@@ -1077,18 +1090,23 @@
       "main": [
         [
           {
-            "node": "Build Idea Parser Prompt",
+            "node": "Normalize Trend Brief",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
+    "Normalize Trend Brief1": {
+      "main": [
+        []
+      ]
+    },
     "Normalize Trend Brief": {
       "main": [
         [
           {
-            "node": "Build Script Prompt",
+            "node": "Build Idea Parser Prompt",
             "type": "main",
             "index": 0
           }
@@ -1101,7 +1119,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "fac5c300-d7ef-4d1c-9307-89d22d754c46",
+  "versionId": "e0e77e3e-ebd8-4c51-b585-200a81567083",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
