@@ -956,7 +956,37 @@
     },
     {
       "parameters": {
-        "options": {}
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/speech",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $env.OPENAI_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.openai_tts_payload) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 2000
+            }
+          }
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
@@ -1527,7 +1557,13 @@
     },
     "Build Scene Voiceover Payloads": {
       "main": [
-        []
+        [
+          {
+            "node": "Create Scene Voiceovers",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Daily Schedule Trigger": {
@@ -1557,6 +1593,17 @@
         [
           {
             "node": "Raw Idea Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Scene Voiceovers": {
+      "main": [
+        [
+          {
+            "node": "Save Scene Voiceovers",
             "type": "main",
             "index": 0
           }
