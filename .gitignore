@@ -43,3 +43,4 @@ data/exports/
 # Logs
 logs/
 *.log
+workflows/*.backup.json
