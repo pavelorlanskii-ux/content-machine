@@ -1,0 +1,1564 @@
+{
+  "name": "Script Agent Prompt Builder",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2576,
+        -240
+      ],
+      "id": "af74d9f2-3b9a-44c0-b208-50a6ac96301f",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst prompt = `# Script Agent Prompt\n\nYou are a Script Agent for a production system that generates short vertical kids videos.\n\nYour task:\nTurn the structured creative brief into a shot-by-shot structure for a short vertical video for YouTube Shorts / Reels.\n\nLanguage requirements:\n- Write everything in English.\n- The title must be in English.\n- Scene content must be in English.\n- Visual descriptions must be in English.\n- Voiceover must be in simple natural English for children.\n- On-screen text must be short English editing-layer text only.\n- Do not use Russian.\n- Do not use Cyrillic.\n- Do not mix languages.\n\nImportant:\n- Do not make an explanatory marketing video.\n- Do not make a generic cute story without a retention mechanic.\n- The video must work visually without any text inside the generated frame.\n- Do not add text, letters, numbers, signs, subtitles, logos, UI screens, watermark or typography inside scene prompts.\n- Any on-screen text will be added later in editing only.\n- Use trend-native kids short-form mechanics freely: game-like missions, toy-like worlds, bright transformations, simple choices, collectibles, rewards, funny safe mistakes and repeatable visual loops.\n- Do not copy exact protected characters, logos, names, UI screens, or one-to-one recognizable scenes.\n- The concept must use original characters, original locations and original visual identity.\n- Content must be safe for children and family viewing.\n- No fear, violence, weapons, fire, crashes, injury, medical scenes, dangerous actions, toxic behavior or adult context.\n- Target duration: about ${item.duration_seconds || 18} seconds.\n- Return strictly in Markdown.\n\n## Input creative brief\n\nID:\n${item.id || \"idea_001\"}\n\nTopic:\n${item.topic || \"\"}\n\nContent category:\n${item.content_category || \"\"}\n\nAudience:\n${item.audience || \"\"}\n\nPlatform:\n${item.platform || \"\"}\n\nDuration:\n${item.duration_seconds || 18} seconds\n\nTone:\n${item.tone || \"\"}\n\nGoal:\n${item.goal || \"\"}\n\nRetention strategy:\n${JSON.stringify(item.retention_strategy || {}, null, 2)}\n\nStory premise:\n${item.story_premise || \"\"}\n\nMain character:\n${JSON.stringify(item.main_character || {}, null, 2)}\n\nSupporting character:\n${JSON.stringify(item.supporting_character || {}, null, 2)}\n\nWorld:\n${JSON.stringify(item.world || {}, null, 2)}\n\nCentral object:\n${JSON.stringify(item.central_object || {}, null, 2)}\n\nPlot:\n${JSON.stringify(item.plot || {}, null, 2)}\n\nVisual direction:\n${item.visual_direction || \"\"}\n\nScene generation rules:\n${JSON.stringify(item.scene_generation_rules || {}, null, 2)}\n\nSafety rules:\n${JSON.stringify(item.safety_rules || [], null, 2)}\n\nOriginality rules:\n${JSON.stringify(item.originality_rules || [], null, 2)}\n\nNegative generation rules:\n${JSON.stringify(item.negative_generation_rules || [], null, 2)}\n\n## Output requirements\n\nReturn Markdown strictly in this structure:\n\n# ${item.id || \"idea_001\"}. Vertical Video Script\n\n## 1. Video title\n\nShort working title in English.\n\n## 2. Video goal\n\n1–2 sentences explaining the retention mechanic.\n\n## 3. Hook\n\nOne strong visual situation for the first 1–2 seconds.\nNo text inside the generated frame.\n\n## 4. Video structure\n\nCreate a table:\n\n| Block | Time | Content | Visual | On-screen text |\n|---|---:|---|---|---|\n\nRequired blocks:\n- Hook\n- Error\n- Choice\n- Transformation\n- Payoff\n- Loop hint\n\nRules:\n- The “Content” column must be in English.\n- The “Visual” column must be in English.\n- The “On-screen text” column must be in English and used only as editing-layer text.\n- In the “Visual” column, describe only what the video generator should see.\n- The visual action must be understandable without words.\n- Keep one clear action per scene.\n- Do not include text, letters, logos, UI or signs in generated scene visuals.\n\n## 5. Voiceover\n\nVery short voiceover in simple English for children.\nUse 4–7 short phrases.\nNo complex words.\nNo long dialogue.\n\n## 6. On-screen text\n\nList short English editing-layer captions.\nMaximum 5 words per line.\nDo not include these captions inside generated visuals.\n\n## 7. Scene prompts\n\nFor each scene include:\n- scene number;\n- what happens;\n- visual style;\n- camera movement;\n- main object;\n- character emotion;\n- safety constraints;\n- negative constraints.\n\nEvery scene prompt must explicitly include:\nno text, no letters, no numbers, no subtitles, no signs, no logos, no watermark.\n\n## 8. CTA\n\nCreate a soft loop-CTA for kids/family short-form.\nNo sales pressure.\nNo manipulative call to action.\n\n## 9. 5 alternative hooks\n\nFive alternative visual hook ideas for the first 1–2 seconds.\n\n## Restrictions\n\n- Do not add facts that are not present in the input brief.\n- Do not use Russian or Cyrillic.\n- Do not copy exact protected characters, logos, names, UI screens, or one-to-one recognizable scenes.\n- Do not use dangerous actions.\n- Do not write long dialogue.\n- Do not add text inside generated scenes.\n- Make scenes suitable for Higgsfield keyframe/video generation.\n`;\n\nreturn [\n  {\n    json: {\n      id: item.id || \"idea_001\",\n      status: \"script_prompt_ready\",\n      source: \"build-script-prompt-from-parsed-idea-en\",\n      parsed_idea: item,\n      prompt: prompt.trim(),\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        240
+      ],
+      "id": "3ca99611-8a98-4d4a-a227-93c94dd82857",
+      "name": "Build Script Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.5",
+          "mode": "list",
+          "cachedResultName": "GPT-5.5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -1408,
+        240
+      ],
+      "id": "5d365e59-fda2-4923-aaeb-109b075d30e9",
+      "name": "LLM Script Generator",
+      "credentials": {
+        "openAiApi": {
+          "id": "Z7Bop0DKJLVQi260",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst scriptMarkdown =\n  item.output?.[0]?.content?.[0]?.text ||\n  item.output?.content?.[0]?.text ||\n  item.text ||\n  '';\n\nreturn [\n  {\n    json: {\n      id: 'idea_001',\n      script_markdown: scriptMarkdown,\n      generated_at: new Date().toISOString(),\n      source: 'openai',\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        240
+      ],
+      "id": "48c2e38f-ac12-42ba-b12f-d3e5668779e4",
+      "name": "Normalize Script Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst scriptMarkdown = item.script_markdown || \"\";\n\nfunction extractDurationSeconds(markdown) {\n  const match =\n    markdown.match(/Длительность:\\s*(\\d+)\\s*сек/i) ||\n    markdown.match(/(\\d+)\\s*секунд/i);\n\n  if (!match) return 18;\n\n  const value = Number(match[1]);\n  return Number.isFinite(value) && value > 0 ? value : 18;\n}\n\nconst durationSeconds = extractDurationSeconds(scriptMarkdown);\n\nconst videoPayload = {\n  id: item.id || \"idea_001\",\n  format: \"vertical_video\",\n  aspect_ratio: \"9:16\",\n  platform: \"reels_tiktok_shorts\",\n  language: \"ru\",\n  duration_seconds: durationSeconds,\n  source: item.source || \"openai\",\n  generated_at: item.generated_at,\n  script_markdown: scriptMarkdown,\n  production_status: \"script_ready\",\n  next_step: \"video_generation\",\n  video_requirements: {\n    resolution: \"1080x1920\",\n    captions: true,\n    voiceover: true,\n    background_music: true,\n    safe_zones: true\n  }\n};\n\nreturn [\n  {\n    json: {\n      id: item.id || \"idea_001\",\n      video_payload: videoPayload\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        240
+      ],
+      "id": "0afa3773-459c-43c2-9542-646f54f0ca3a",
+      "name": "Build Video Payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nreturn [\n  {\n    json: {\n      id: item.id,\n      status: 'ready_for_video_generation',\n      video_payload: item.video_payload,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        240
+      ],
+      "id": "67e7e374-21b3-4ce7-aaf8-71d953aa2b83",
+      "name": "Final Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst videoPayload = item.video_payload || {};\nconst scriptMarkdown =\n  videoPayload.script_markdown ||\n  item.script_markdown ||\n  \"\";\n\nif (!scriptMarkdown) {\n  throw new Error(\"script_markdown not found\");\n}\n\nfunction cleanText(value) {\n  return String(value || \"\")\n    .replace(/\\\\n/g, \"\\n\")\n    .replace(/\\r/g, \"\")\n    .trim();\n}\n\nconst markdown = cleanText(scriptMarkdown);\n\nfunction extractSection(markdown, heading) {\n  const escapedHeading = heading.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\");\n  const regex = new RegExp(\n    `##\\\\s*${escapedHeading}\\\\s*\\\\n([\\\\s\\\\S]*?)(?=\\\\n##\\\\s+|\\\\n#\\\\s+|$)`,\n    \"i\"\n  );\n\n  const match = markdown.match(regex);\n  return match ? match[1].trim() : \"\";\n}\n\nfunction firstNonEmptyLine(text) {\n  return cleanText(text)\n    .split(\"\\n\")\n    .map((line) => line.trim())\n    .filter(Boolean)\n    .find(Boolean) || \"\";\n}\n\nfunction stripMarkdownListMarker(line) {\n  return String(line || \"\")\n    .replace(/^\\s*[-*]\\s+/, \"\")\n    .replace(/^\\s*\\d+[.)]\\s+/, \"\")\n    .trim();\n}\n\nfunction parseListSection(sectionText) {\n  return cleanText(sectionText)\n    .split(\"\\n\")\n    .map(stripMarkdownListMarker)\n    .map((line) => line.replace(/^[\"“”]+|[\"“”]+$/g, \"\").trim())\n    .filter(Boolean)\n    .filter((line) => !line.startsWith(\"|\"))\n    .filter((line) => !/^[-:| ]+$/.test(line));\n}\n\nfunction parseVideoStructureTable(markdown) {\n  const section =\n    extractSection(markdown, \"4. Video structure\") ||\n    extractSection(markdown, \"Video structure\") ||\n    extractSection(markdown, \"4. Структура ролика\") ||\n    extractSection(markdown, \"Структура ролика\");\n\n  if (!section) return [];\n\n  const lines = section\n    .split(\"\\n\")\n    .map((line) => line.trim())\n    .filter(Boolean);\n\n  const tableLines = lines.filter((line) => line.startsWith(\"|\") && line.endsWith(\"|\"));\n\n  if (tableLines.length < 3) return [];\n\n  const dataLines = tableLines.filter((line) => {\n    const normalized = line.replace(/\\s/g, \"\");\n    return !normalized.includes(\"|---\") && !normalized.includes(\"|:---\");\n  });\n\n  const header = dataLines.shift();\n  if (!header) return [];\n\n  return dataLines.map((line, index) => {\n    const cells = line\n      .split(\"|\")\n      .slice(1, -1)\n      .map((cell) => cell.trim());\n\n    const [block, time, content, visual, onScreenText] = cells;\n\n    return {\n      scene: index + 1,\n      block: block || `Scene ${index + 1}`,\n      duration: time || \"\",\n      content: content || \"\",\n      visual: visual || \"\",\n      on_screen_text: onScreenText || \"\"\n    };\n  }).filter((scene) => scene.content || scene.visual);\n}\n\nfunction extractTitle(markdown) {\n  const sectionTitle =\n    firstNonEmptyLine(extractSection(markdown, \"1. Video title\")) ||\n    firstNonEmptyLine(extractSection(markdown, \"Video title\")) ||\n    \"\";\n\n  if (sectionTitle) return sectionTitle.replace(/^#+\\s*/, \"\").trim();\n\n  const h1 = markdown.match(/^#\\s+(.+)$/m);\n  if (h1) {\n    return h1[1]\n      .replace(/^idea_\\d+\\.\\s*/i, \"\")\n      .replace(/Vertical Video Script/i, \"\")\n      .trim();\n  }\n\n  return \"Untitled Short\";\n}\n\nfunction extractVoiceover(markdown) {\n  const section =\n    extractSection(markdown, \"5. Voiceover\") ||\n    extractSection(markdown, \"Voiceover\") ||\n    \"\";\n\n  const lines = parseListSection(section);\n\n  if (lines.length > 0) {\n    return lines.join(\"\\n\");\n  }\n\n  return cleanText(section);\n}\n\nfunction extractCaptions(markdown) {\n  const section =\n    extractSection(markdown, \"6. On-screen text\") ||\n    extractSection(markdown, \"On-screen text\") ||\n    \"\";\n\n  return parseListSection(section);\n}\n\nfunction extractCTA(markdown) {\n  const section =\n    extractSection(markdown, \"8. CTA\") ||\n    extractSection(markdown, \"CTA\") ||\n    \"\";\n\n  return firstNonEmptyLine(section);\n}\n\nconst title = extractTitle(markdown);\nconst voiceover = extractVoiceover(markdown);\nconst captions = extractCaptions(markdown);\nconst scenes = parseVideoStructureTable(markdown);\nconst cta = extractCTA(markdown);\n\nif (!Array.isArray(scenes) || scenes.length === 0) {\n  throw new Error(\"Could not extract scenes from Markdown video structure table\");\n}\n\nconst videoPipelineJson = {\n  id: item.id || videoPayload.id || \"idea_001\",\n  title,\n  duration_seconds: Number(videoPayload.duration_seconds || item.duration_seconds || 18),\n  language: \"en\",\n  aspect_ratio: videoPayload.aspect_ratio || item.aspect_ratio || \"9:16\",\n  resolution: videoPayload.video_requirements?.resolution || \"1080x1920\",\n  voiceover,\n  captions,\n  scenes,\n  cta,\n  source_script_format: \"markdown\"\n};\n\nreturn [\n  {\n    json: {\n      id: item.id || videoPayload.id || \"idea_001\",\n      status: \"ready_for_video_pipeline\",\n      video_pipeline_json: videoPipelineJson,\n      source_video_payload: videoPayload,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        240
+      ],
+      "id": "4d1f691b-39f1-4c19-836a-6bb5d171c33f",
+      "name": "Build Video Pipeline JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst pipeline = item.video_pipeline_json;\n\nif (!pipeline) {\n  throw new Error(\"video_pipeline_json not found\");\n}\n\nconst scenes = pipeline.scenes || [];\n\nif (!Array.isArray(scenes) || scenes.length === 0) {\n  throw new Error(\"video_pipeline_json.scenes is empty or not an array\");\n}\n\nconst globalStyle = [\n  \"vertical 9:16 kids short-form animation storyboard frame\",\n  \"production-ready keyframe for image-to-video motion\",\n  \"clear readable action\",\n  \"one main action per frame\",\n  \"large simple objects\",\n  \"consistent toy-like 3D world\",\n  \"consistent characters across all scenes\",\n  \"same main character design across all scenes\",\n  \"same supporting character design across all scenes\",\n  \"same central object design across all scenes\",\n  \"same environment design across all scenes\",\n  \"same color palette across all scenes\",\n  \"bright colorful toy-like 3D animation\",\n  \"soft cinematic lighting\",\n  \"rounded safe shapes\",\n  \"expressive character emotions\",\n  \"clean background\",\n  \"strong foreground subject\",\n  \"safe family-friendly visual comedy\",\n  \"modern animated kids short look\",\n  \"clear staging for motion\",\n  \"no random logos\",\n  \"no readable UI\",\n  \"no text inside the image\",\n  \"no letters\",\n  \"no captions\",\n  \"no subtitles\",\n  \"no signs\",\n  \"no logos\",\n  \"no watermark\",\n  \"no typography\",\n  \"no broken text\",\n  \"no distorted objects\"\n].join(\", \");\n\nconst noTextRule =\n  \"Do not render any text, letters, captions, subtitles, words, numbers, symbols, UI, signs, logos, watermark or typography inside the image. All captions and on-screen text will be added later in post-production, not inside the generated image.\";\n\nconst continuityRule = [\n  \"This is one frame from a multi-scene storyboard for the same short video.\",\n  \"Keep the same main character, supporting character, central object, environment, material style, lighting style and color palette across all scenes.\",\n  \"Do not redesign the characters or world between scenes.\"\n].join(\" \");\n\nconst packages = scenes.map((scene, index) => {\n  const sceneNumber = scene.scene || index + 1;\n  const sceneId = `scene_${String(sceneNumber).padStart(2, \"0\")}`;\n\n  const visual = scene.visual || \"\";\n  const content = scene.content || \"\";\n  const onScreenText = scene.on_screen_text || \"\";\n\n  const keyframePrompt = [\n    `Create one production storyboard keyframe for scene ${sceneNumber} of a vertical 9:16 kids animated short.`,\n    `This frame must look like a clear still from a finished 3D animated episode, ready for image-to-video motion.`,\n    `Scene block: ${scene.block || \"\"}.`,\n    `Scene action: ${content}.`,\n    `Visual composition: ${visual}.`,\n    continuityRule,\n    `Use a clear camera angle and readable staging. One main action only.`,\n    `Make the frame feel like part of a coherent storyboard sequence, not a standalone random illustration.`,\n    noTextRule,\n    globalStyle\n  ].filter(Boolean).join(\" \");\n\n  const dopPrompt = [\n    `Animate this storyboard keyframe as a short vertical 9:16 kids animation scene.`,\n    `Scene ${sceneNumber} action: ${content}.`,\n    `Keep motion simple, readable and directly connected to the storyboard action.`,\n    `Use subtle cinematic camera movement only if it supports the action.`,\n    `Keep the same characters, environment, central object and color palette stable.`,\n    `Do not introduce unrelated objects, new characters, random props or new locations.`,\n    `Do not change the character design during motion.`,\n    noTextRule\n  ].filter(Boolean).join(\" \");\n\n  return {\n    id: pipeline.id || item.id || \"idea_001\",\n    title: String(pipeline.title || \"\").replace(/\\*\\*/g, \"\").trim(),\n    language: pipeline.language || \"en\",\n    duration_seconds: pipeline.duration_seconds || 18,\n    aspect_ratio: pipeline.aspect_ratio || \"9:16\",\n\n    scene_id: sceneId,\n    scene_number: sceneNumber,\n    block: scene.block || \"\",\n    duration: scene.duration || \"\",\n    content,\n    visual,\n    on_screen_text: onScreenText,\n\n    keyframe_prompt: keyframePrompt,\n    dop_prompt: dopPrompt,\n\n    width_and_height: \"1152x2048\",\n    quality: \"720p\",\n    batch_size: 1,\n    enhance_prompt: true,\n    style_strength: 1,\n    motions: null,\n\n    constraints: [\n      \"must match the source script\",\n      \"must match the scene visual direction\",\n      \"must be suitable for vertical social video\",\n      \"must be family-friendly\",\n      \"must look like a production storyboard keyframe\",\n      \"must support image-to-video motion\",\n      \"must use one clear action per frame\",\n      \"must use original character design\",\n      \"must use original world design\",\n      \"must keep characters consistent across scenes\",\n      \"must keep environment consistent across scenes\",\n      \"must keep central object consistent across scenes\",\n      \"must avoid random logos\",\n      \"must avoid readable UI\",\n      \"must avoid text inside the image\",\n      \"must avoid letters\",\n      \"must avoid captions\",\n      \"must avoid subtitles\",\n      \"must avoid signs\",\n      \"must avoid logos\",\n      \"must avoid watermark\",\n      \"must avoid typography\",\n      \"must avoid broken text\",\n      \"must avoid distorted objects\"\n    ]\n  };\n});\n\nreturn [\n  {\n    json: {\n      id: pipeline.id || item.id || \"idea_001\",\n      status: \"higgsfield_scene_packages_ready\",\n      source: \"build-higgsfield-scene-packages\",\n      title: String(pipeline.title || \"\").replace(/\\*\\*/g, \"\").trim(),\n      language: pipeline.language || \"en\",\n      duration_seconds: pipeline.duration_seconds || 18,\n      aspect_ratio: pipeline.aspect_ratio || \"9:16\",\n      scene_packages: packages,\n      source_video_pipeline_json: pipeline,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        192
+      ],
+      "id": "cc4e27fb-8666-4f36-ac83-8386da560058",
+      "name": "Build Higgsfield Scene Packages"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst packages = item.scene_packages || [];\n\nif (!Array.isArray(packages) || packages.length === 0) {\n  throw new Error(\"scene_packages is empty or not an array\");\n}\n\nreturn packages.map((scenePackage) => ({\n  json: {\n    id: item.id,\n    title: item.title,\n    language: item.language,\n    duration_seconds: item.duration_seconds,\n    aspect_ratio: item.aspect_ratio,\n    ...scenePackage\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        192
+      ],
+      "id": "6fcbd15d-387e-4c21-95c3-42feb648510b",
+      "name": "Split Scene Packages"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nif (!items.length) {\n  throw new Error(\"No scene packages found\");\n}\n\nreturn items.map((inputItem) => {\n  const item = inputItem.json;\n\n  if (!item.keyframe_prompt) {\n    throw new Error(`keyframe_prompt not found for ${item.scene_id || \"unknown scene\"}`);\n  }\n\n  return {\n    json: {\n      id: item.id,\n      title: item.title,\n      language: item.language || \"en\",\n      duration_seconds: item.duration_seconds,\n      aspect_ratio: item.aspect_ratio,\n\n      scene_id: item.scene_id,\n      scene_number: item.scene_number,\n      block: item.block,\n      duration: item.duration,\n      content: item.content,\n      visual: item.visual,\n      on_screen_text: item.on_screen_text,\n\n      source: \"keyframe-generation-layer\",\n      provider: \"higgsfield\",\n      model: \"soul\",\n      soul_endpoint: \"/v1/text2image/soul\",\n\n      dop_prompt: item.dop_prompt,\n      motions: item.motions,\n\n      soul_payload: {\n        params: {\n          seed: null,\n          prompt: item.keyframe_prompt,\n          quality: item.quality || \"720p\",\n          batch_size: item.batch_size || 1,\n          enhance_prompt: item.enhance_prompt ?? true,\n          style_strength: item.style_strength ?? 1,\n          width_and_height: item.width_and_height || \"1152x2048\"\n        },\n        webhook: null\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        192
+      ],
+      "id": "5f69c4c0-4089-466f-9f9c-cd83705f7911",
+      "name": "Build Soul Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + $json.soul_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.soul_payload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2368,
+        32
+      ],
+      "id": "93dd0125-364e-4ca5-8ecf-86f4d64b314d",
+      "name": "Create Soul Image"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2000,
+        224
+      ],
+      "id": "cdb1a516-87bf-4feb-afd3-ae6a5562687b",
+      "name": "Wait for Soul Render",
+      "webhookId": "00e12a71-f155-4ec6-a445-db2375331706"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + \"/requests/\" + $json.id + \"/status\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2208,
+        224
+      ],
+      "id": "61a00aa5-a298-45ab-b9d8-c71a93019d00",
+      "name": "Check Soul Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (item.status !== \"completed\") {\n  return [\n    {\n      json: {\n        status: \"not_ready\",\n        provider_status: item.status,\n        request_id: item.request_id,\n        status_url: item.status_url,\n        source: \"higgsfield-soul\"\n      }\n    }\n  ];\n}\n\nconst keyframeUrl = item.images?.[0]?.url;\n\nif (!keyframeUrl) {\n  throw new Error(\"Soul completed, but images[0].url was not found\");\n}\n\nreturn [\n  {\n    json: {\n      scene_id: \"scene_01\",\n      keyframe_status: \"ready\",\n      keyframe_request_id: item.request_id,\n      keyframe_url: keyframeUrl,\n      source: \"higgsfield-soul\",\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        224
+      ],
+      "id": "f10bad3f-9bd1-463a-8f1a-51c9c7549469",
+      "name": "Normalize Keyframe Result"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst PUBLIC_FILES_BASE_URL = \"https://skirt-expired-mutual-scope.trycloudflare.com\";\n\nif (!items.length) {\n  throw new Error(\"No storyboard frame items found\");\n}\n\nreturn items.map((inputItem) => {\n  const item = inputItem.json;\n\n  if (item.status !== \"storyboard_frame_ready\") {\n    throw new Error(`Storyboard frame is not ready for ${item.scene_id || \"unknown scene\"}`);\n  }\n\n  if (!item.local_frame_file_path) {\n    throw new Error(`local_frame_file_path not found for ${item.scene_id || \"unknown scene\"}`);\n  }\n\n  const relativePath = item.local_frame_file_path.replace(/^data\\//, \"\");\n  const publicImageUrl = `${PUBLIC_FILES_BASE_URL.replace(/\\/$/, \"\")}/${relativePath}`;\n\n  const prompt =\n    item.dop_prompt ||\n    [\n      \"Animate this clean storyboard frame as a short vertical 9:16 kids animated scene.\",\n      \"Keep the same characters, same world, same central object, same colors and same lighting from the frame.\",\n      \"Use simple readable motion. One clear action only.\",\n      \"Do not add text, captions, logos, signs, UI, numbers, letters or watermarks.\"\n    ].join(\" \");\n\n  return {\n    json: {\n      id: item.id || \"idea_001\",\n      title: item.title || \"\",\n      language: item.language || \"en\",\n      duration_seconds: item.duration_seconds || 18,\n      aspect_ratio: item.aspect_ratio || \"9:16\",\n\n      scene_id: item.scene_id,\n      scene_number: item.scene_number,\n      block: item.block || \"\",\n      duration: item.duration || \"\",\n      content: item.content || \"\",\n      visual: item.visual || \"\",\n      on_screen_text: item.on_screen_text || \"\",\n\n      source: \"higgsfield-dop-turbo\",\n      provider: \"higgsfield\",\n      model: \"dop-turbo\",\n      dop_endpoint: \"/higgsfield-ai/dop/turbo\",\n\n      frame_file_path: item.frame_file_path,\n      local_frame_file_path: item.local_frame_file_path,\n      public_image_url: publicImageUrl,\n\n      dop_prompt: prompt,\n\n      dop_payload: {\n        seed: null,\n        prompt,\n        motions: null,\n        image_url: publicImageUrl,\n        enhance_prompt: true\n      },\n\n      source_storyboard_frame: item,\n      completed_at: new Date().toISOString()\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        720
+      ],
+      "id": "ec92c4b5-ddda-4b83-a7a4-c58d3b69c7d5",
+      "name": "Build DoP Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + $json.dop_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.dop_payload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -752,
+        720
+      ],
+      "id": "4b65249d-bd6c-47be-bcb5-60a541f8a24e",
+      "name": "Create DoP Video"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        720
+      ],
+      "id": "42d85201-7222-4db8-930a-b025613f127f",
+      "name": "Wait for DoP Render",
+      "webhookId": "c57b61ab-908b-4130-87ad-8c82c5ac98b0"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.HIGGSFIELD_API_BASE_URL + \"/requests/\" + $json.request_id + \"/status\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "hf-api-key",
+              "value": "={{ $env.HIGGSFIELD_API_KEY_ID }}"
+            },
+            {
+              "name": "hf-secret",
+              "value": "={{ $env.HIGGSFIELD_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -240,
+        720
+      ],
+      "id": "9932ba9b-7f43-40b8-8fb3-8e7bf2a9b7cd",
+      "name": "Check DoP Status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const statusItems = $input.all();\nconst sourceItems = $items(\"Build DoP Payload\");\n\nif (!statusItems.length) {\n  throw new Error(\"No DoP status items found\");\n}\n\nif (!sourceItems.length) {\n  throw new Error(\"No source DoP payload items found\");\n}\n\nif (statusItems.length !== sourceItems.length) {\n  throw new Error(`Items count mismatch: statusItems=${statusItems.length}, sourceItems=${sourceItems.length}`);\n}\n\nreturn statusItems.map((statusItem, index) => {\n  const status = statusItem.json;\n  const source = sourceItems[index].json;\n\n  if (status.status !== \"completed\") {\n    throw new Error(`DoP render is not completed for item ${index + 1}. Status: ${status.status}`);\n  }\n\n  const videoUrl = status.video?.url;\n\n  if (!videoUrl) {\n    throw new Error(`Completed DoP render has no video.url for item ${index + 1}`);\n  }\n\n  return {\n    json: {\n      id: source.id || \"idea_001\",\n      status: \"scene_video_ready\",\n      source: \"normalize-scene-video-result\",\n\n      title: source.title || \"\",\n      language: source.language || \"en\",\n      duration_seconds: source.duration_seconds || 18,\n      aspect_ratio: source.aspect_ratio || \"9:16\",\n\n      scene_id: source.scene_id,\n      scene_number: source.scene_number,\n      block: source.block || \"\",\n      duration: source.duration || \"\",\n      content: source.content || \"\",\n      visual: source.visual || \"\",\n      on_screen_text: source.on_screen_text || \"\",\n\n      provider: \"higgsfield\",\n      model: \"dop-turbo\",\n\n      request_id: status.request_id,\n      status_url: status.status_url,\n      cancel_url: status.cancel_url,\n\n      frame_file_path: source.frame_file_path,\n      local_frame_file_path: source.local_frame_file_path,\n      public_image_url: source.public_image_url,\n\n      dop_prompt: source.dop_prompt,\n      video_url: videoUrl,\n\n      source_dop_status: status,\n      source_dop_payload: source,\n\n      completed_at: new Date().toISOString()\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        720
+      ],
+      "id": "14bd1c5f-ec8b-4345-869c-f067bc2a8258",
+      "name": "Normalize Scene Video Result"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8abd7f7c-5b54-4367-8b6e-6b34693dc1ba",
+              "name": "id",
+              "value": "idea_001",
+              "type": "string"
+            },
+            {
+              "id": "26c41e44-6372-4cf8-ae43-8ae27b97b659",
+              "name": "raw_idea",
+              "value": "A short animated kids video: a small cute helper enters a colorful toy-like world, finds a magical object, makes a funny mistake, chooses the correct object, and triggers a bright transformation. The format should feel trend-native for YouTube Shorts / Reels.",
+              "type": "string"
+            },
+            {
+              "id": "2ef2612f-44a8-42a6-9eab-6d1ed88889c8",
+              "name": "target_audience",
+              "value": "children and family audience",
+              "type": "string"
+            },
+            {
+              "id": "69361ee8-d631-4ac7-9472-705a83e1572c",
+              "name": "platform",
+              "value": "YouTube Shorts / Reels",
+              "type": "string"
+            },
+            {
+              "id": "fc8f2d5b-145a-467b-9b42-4c836eb147bd",
+              "name": "duration_seconds",
+              "value": "18",
+              "type": "string"
+            },
+            {
+              "id": "eda42698-879d-41a1-8330-a3867a9252e1",
+              "name": "trend_direction",
+              "value": "current kids short-form content: fast 3D/cartoon stories, visual guessing games, object transformations, funny safe mistakes, bright characters, repeatable episode structure, strong retention in the first seconds",
+              "type": "string"
+            },
+            {
+              "id": "d6cc0ba3-7e1c-48d2-aa0d-fc50b4b8f9f2",
+              "name": "research_goal",
+              "value": "identify trend-native mechanics for safe kids short-form content and convert them into an original brief without copying brands, franchises or known characters",
+              "type": "string"
+            },
+            {
+              "id": "c7b2109b-bca4-4a56-b086-072ef479d4c3",
+              "name": "safety_constraints",
+              "value": "no violence, no fear, no dangerous challenges, no adult themes, no toxic behavior, no manipulative calls to action, safe for children and family viewing",
+              "type": "string"
+            },
+            {
+              "id": "6b732d63-a71a-4e58-af70-f6c88730eecd",
+              "name": "brand_constraints",
+              "value": "Analyze popular kids short-form mechanics freely, including game-like, toy-like, animated, cinematic, challenge-based, transformation-based and character-driven formats. Do not copy exact protected characters, logos, names, UI, or one-to-one recognizable scenes. Generate an original concept with its own characters, world and visual identity.",
+              "type": "string"
+            },
+            {
+              "id": "a7592b55-a99c-4845-aaba-66b1b6ee9a44",
+              "name": "output_goal",
+              "value": "produce a trend-informed English-language kids short-form brief that can be used for script, storyboard, keyframe prompts, video generation and voiceover",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2336,
+        0
+      ],
+      "id": "9c2255a4-bc13-4d96-9492-416e15159c7c",
+      "name": "Raw Idea Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nfunction extractTrendBrief(input) {\n  const text =\n    input.output?.[0]?.content?.[0]?.text ||\n    input.output?.content?.[0]?.text ||\n    input.text ||\n    \"\";\n\n  if (!text) return input;\n\n  const cleaned = text\n    .replace(/^```json\\s*/i, \"\")\n    .replace(/^```\\s*/i, \"\")\n    .replace(/```$/i, \"\")\n    .trim();\n\n  try {\n    return JSON.parse(cleaned);\n  } catch (error) {\n    throw new Error(`Trend brief JSON parse failed: ${error.message}`);\n  }\n}\n\nconst trendBrief = extractTrendBrief(item);\n\nconst prompt = `\nYou are an Idea Parser Agent for an automated short-form kids video content machine.\n\nYour task:\nConvert the trend research brief into a structured creative brief for script generation.\n\nLanguage requirements:\n- Return everything in English.\n- All fields must be in English.\n- Do not use Russian.\n- Do not use Cyrillic.\n- Do not mix languages.\n- Character names must be simple English-friendly names.\n- On-screen text must be short English editing-layer text only.\n\nCreative requirements:\n- Use trend-native kids short-form mechanics freely: game-like missions, toy-like worlds, object transformations, guessing games, collectibles, rewards, simple choices, funny safe mistakes, and repeatable visual loops.\n- Do not make a generic cute story by default.\n- The concept must have a fast visual hook in the first 1–2 seconds.\n- The story must be understandable without dialogue.\n- The structure must be suitable for an 18-second vertical video.\n- Create original characters, an original world, and an original visual identity.\n- Do not copy exact protected characters, logos, names, UI screens, or one-to-one recognizable scenes.\n- Do not output named franchises or brand names as creative directions.\n\nSafety requirements:\n- Safe for children and family viewing.\n- No violence.\n- No fear or horror.\n- No weapons.\n- No fire.\n- No injury.\n- No medical scenes.\n- No dangerous challenges.\n- No adult themes.\n- No toxic behavior.\n- No manipulative calls to action.\n\nScene generation requirements:\n- Generated visuals must contain no text.\n- No letters.\n- No numbers.\n- No subtitles.\n- No signs.\n- No logos.\n- No watermark.\n- On-screen text will be added later in editing.\n\nInput trend brief:\n${JSON.stringify(trendBrief, null, 2)}\n\nReturn strict JSON only.\nNo markdown.\nNo comments before or after JSON.\n\nReturn JSON strictly in this structure:\n\n{\n  \"id\": \"idea_001\",\n  \"status\": \"parsed_idea_ready\",\n  \"topic\": \"\",\n  \"content_category\": \"\",\n  \"audience\": \"children and family audience\",\n  \"platform\": \"YouTube Shorts / Reels\",\n  \"duration_seconds\": 18,\n  \"tone\": \"\",\n  \"goal\": \"\",\n  \"retention_strategy\": {\n    \"first_2_seconds\": \"\",\n    \"core_loop\": \"\",\n    \"payoff\": \"\",\n    \"loop_hint\": \"\"\n  },\n  \"story_premise\": \"\",\n  \"main_character\": {\n    \"name\": \"\",\n    \"type\": \"\",\n    \"personality\": \"\",\n    \"visual_description\": \"\"\n  },\n  \"supporting_character\": {\n    \"name\": \"\",\n    \"type\": \"\",\n    \"role\": \"\",\n    \"visual_description\": \"\"\n  },\n  \"world\": {\n    \"setting\": \"\",\n    \"visual_style\": \"\",\n    \"mood\": \"\",\n    \"environment_rules\": \"\"\n  },\n  \"central_object\": {\n    \"object_type\": \"\",\n    \"role\": \"\",\n    \"wrong_state\": \"\",\n    \"correct_state\": \"\",\n    \"transformation\": \"\"\n  },\n  \"plot\": {\n    \"hook\": \"\",\n    \"conflict\": \"\",\n    \"choice_action\": \"\",\n    \"turning_point\": \"\",\n    \"resolution\": \"\",\n    \"loop_hint\": \"\"\n  },\n  \"visual_direction\": \"\",\n  \"scene_generation_rules\": {\n    \"must_have\": [],\n    \"must_avoid\": [],\n    \"text_policy\": \"no text, letters, numbers, subtitles, signs, logos or watermark inside generated visuals\"\n  },\n  \"safety_rules\": [],\n  \"originality_rules\": [],\n  \"negative_generation_rules\": [],\n  \"brief_source\": \"trend_brief\"\n}\n`;\n\nreturn [\n  {\n    json: {\n      id: trendBrief.id || item.id || \"idea_001\",\n      status: \"idea_parser_prompt_ready\",\n      source: \"build-idea-parser-prompt-from-trend-brief-en\",\n      trend_brief: trendBrief,\n      idea_parser_prompt: prompt.trim(),\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ],
+      "id": "3f382400-0493-4edb-b196-1c585f4d56ba",
+      "name": "Build Idea Parser Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.5",
+          "mode": "list",
+          "cachedResultName": "GPT-5.5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.idea_parser_prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -2320,
+        240
+      ],
+      "id": "a9a2b15b-180a-4026-8763-93281764f639",
+      "name": "LLM Idea Parser",
+      "credentials": {
+        "openAiApi": {
+          "id": "Z7Bop0DKJLVQi260",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst rawText =\n  item.output?.[0]?.content?.[0]?.text ||\n  item.output?.content?.[0]?.text ||\n  item.content?.[0]?.text ||\n  item.text ||\n  \"\";\n\nif (!rawText || typeof rawText !== \"string\") {\n  throw new Error(\"Parsed idea text not found in LLM output\");\n}\n\nfunction extractJson(text) {\n  const cleaned = text\n    .replace(/^```json\\s*/i, \"\")\n    .replace(/^```\\s*/i, \"\")\n    .replace(/```$/i, \"\")\n    .trim();\n\n  try {\n    return JSON.parse(cleaned);\n  } catch (directError) {\n    const firstBrace = cleaned.indexOf(\"{\");\n    const lastBrace = cleaned.lastIndexOf(\"}\");\n\n    if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {\n      throw new Error(\"No JSON object found in parsed idea text\");\n    }\n\n    const jsonCandidate = cleaned.slice(firstBrace, lastBrace + 1);\n    return JSON.parse(jsonCandidate);\n  }\n}\n\nconst parsed = extractJson(rawText);\n\nconst requiredFields = [\n  \"id\",\n  \"topic\",\n  \"content_category\",\n  \"audience\",\n  \"platform\",\n  \"duration_seconds\",\n  \"tone\",\n  \"goal\",\n  \"retention_strategy\",\n  \"story_premise\",\n  \"main_character\",\n  \"world\",\n  \"central_object\",\n  \"plot\",\n  \"visual_direction\",\n  \"scene_generation_rules\"\n];\n\nfor (const field of requiredFields) {\n  if (parsed[field] === undefined || parsed[field] === null) {\n    throw new Error(`Parsed idea missing required field: ${field}`);\n  }\n}\n\nreturn [\n  {\n    json: {\n      id: parsed.id || \"idea_001\",\n      status: \"parsed_idea_ready\",\n      source: \"normalize-parsed-idea\",\n\n      topic: parsed.topic || \"\",\n      content_category: parsed.content_category || \"\",\n      audience: parsed.audience || \"дети и семейная аудитория\",\n      platform: parsed.platform || \"YouTube Shorts / Reels\",\n      duration_seconds: Number(parsed.duration_seconds || 18),\n      tone: parsed.tone || \"\",\n      goal: parsed.goal || \"\",\n\n      retention_strategy: parsed.retention_strategy || {},\n      story_premise: parsed.story_premise || \"\",\n      main_character: parsed.main_character || {},\n      supporting_character: parsed.supporting_character || {},\n      world: parsed.world || {},\n      central_object: parsed.central_object || {},\n      plot: parsed.plot || {},\n\n      visual_direction: parsed.visual_direction || \"\",\n      scene_generation_rules: parsed.scene_generation_rules || {},\n\n      safety_rules: Array.isArray(parsed.safety_rules) ? parsed.safety_rules : [],\n      brand_ip_exclusions: Array.isArray(parsed.brand_ip_exclusions)\n        ? parsed.brand_ip_exclusions\n        : [],\n      negative_references: Array.isArray(parsed.negative_references)\n        ? parsed.negative_references\n        : [],\n\n      brief_source: parsed.brief_source || \"trend_brief\",\n      raw_parsed_idea_json: parsed,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1888,
+        240
+      ],
+      "id": "99530b10-dfa8-466e-96b6-0df703407e8a",
+      "name": "Normalize Parsed Idea"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// DEBUG MODE: 6 queries to avoid burning YouTube API quota during workflow testing.\n// Later we can return to 12–15 queries for production mode.\nconst queries = [\n  \"kids animation shorts\",\n  \"kids 3D cartoon shorts\",\n  \"kids game animation shorts\",\n  \"kids transformation animation shorts\",\n  \"kids guessing game shorts\",\n  \"family friendly 3D shorts\"\n];\n\nreturn queries.map((query, index) => ({\n  json: {\n    id: item.id || \"idea_001\",\n    source: \"youtube\",\n    query_id: `youtube_query_${String(index + 1).padStart(2, \"0\")}`,\n    query,\n\n    raw_idea: item.raw_idea || \"\",\n    target_audience: item.target_audience || \"children and family audience\",\n    platform: item.platform || \"YouTube Shorts / Reels\",\n    duration_seconds: Number(item.duration_seconds || 18),\n\n    trend_direction: item.trend_direction || \"\",\n    research_goal: item.research_goal || \"\",\n    safety_constraints: item.safety_constraints || \"\",\n    brand_constraints: item.brand_constraints || \"\",\n    output_goal: item.output_goal || \"\"\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2128,
+        0
+      ],
+      "id": "0e6f5f5f-81f7-4d9d-8c10-2c9c8303a208",
+      "name": "Build Trend Source Queries"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "type",
+              "value": "video"
+            },
+            {
+              "name": "videoDuration",
+              "value": "short"
+            },
+            {
+              "name": "order",
+              "value": "viewCount"
+            },
+            {
+              "name": "publishedAfter",
+              "value": "={{ new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString() }}"
+            },
+            {
+              "name": "maxResults",
+              "value": "={{ $env.YOUTUBE_MAX_RESULTS || 10 }}"
+            },
+            {
+              "name": "regionCode",
+              "value": "={{ $env.YOUTUBE_REGION_CODE || \"US\" }}"
+            },
+            {
+              "name": "relevanceLanguage",
+              "value": "={{ $env.YOUTUBE_RELEVANCE_LANGUAGE || \"en\" }}"
+            },
+            {
+              "name": "key",
+              "value": "={{ $env.YOUTUBE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 15000
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1920,
+        0
+      ],
+      "id": "4d8dd5fc-2ec9-4f1f-a6d4-abd66628aa06",
+      "name": "YouTube Search Collector",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst out = [];\n\nfor (const item of items) {\n  const source = item.json;\n  const results = source.items || [];\n\n  for (const result of results) {\n    const videoId = result.id?.videoId;\n    if (!videoId) continue;\n\n    out.push({\n      json: {\n        source: \"youtube\",\n        query_id: source.query_id || \"\",\n        query: source.query || \"\",\n        video_id: videoId,\n        title: result.snippet?.title || \"\",\n        description: result.snippet?.description || \"\",\n        channel_id: result.snippet?.channelId || \"\",\n        channel_title: result.snippet?.channelTitle || \"\",\n        published_at: result.snippet?.publishedAt || \"\",\n        thumbnail_url:\n          result.snippet?.thumbnails?.high?.url ||\n          result.snippet?.thumbnails?.medium?.url ||\n          result.snippet?.thumbnails?.default?.url ||\n          \"\"\n      }\n    });\n  }\n}\n\nconst unique = new Map();\n\nfor (const item of out) {\n  if (!unique.has(item.json.video_id)) {\n    unique.set(item.json.video_id, item);\n  }\n}\n\nreturn Array.from(unique.values());"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1712,
+        0
+      ],
+      "id": "b3e18cda-6845-4c43-a84a-1ae8f13ba0dc",
+      "name": "Normalize YouTube Search Results"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst videoIds = items\n  .map((item) => item.json.video_id)\n  .filter(Boolean);\n\nconst uniqueIds = [...new Set(videoIds)];\n\nconst chunks = [];\nconst chunkSize = 50;\n\nfor (let i = 0; i < uniqueIds.length; i += chunkSize) {\n  chunks.push(uniqueIds.slice(i, i + chunkSize));\n}\n\nreturn chunks.map((chunk, index) => ({\n  json: {\n    source: \"youtube\",\n    batch_id: `youtube_stats_batch_${String(index + 1).padStart(2, \"0\")}`,\n    video_ids: chunk,\n    video_ids_csv: chunk.join(\",\"),\n    video_count: chunk.length\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1504,
+        0
+      ],
+      "id": "5befa85a-125a-457e-bbaa-f78480e68f56",
+      "name": "Build YouTube Stats Requests"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet,statistics,contentDetails"
+            },
+            {
+              "name": "id",
+              "value": "={{ $json.video_ids_csv }}"
+            },
+            {
+              "name": "key",
+              "value": "={{ $env.YOUTUBE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1296,
+        0
+      ],
+      "id": "91f4aceb-3dcb-4507-ab84-12cde6c842a5",
+      "name": "YouTube Video Stats Collector"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst out = [];\n\nfunction parseIsoDurationToSeconds(duration) {\n  if (!duration || typeof duration !== \"string\") return null;\n\n  const match = duration.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);\n  if (!match) return null;\n\n  const hours = Number(match[1] || 0);\n  const minutes = Number(match[2] || 0);\n  const seconds = Number(match[3] || 0);\n\n  return hours * 3600 + minutes * 60 + seconds;\n}\n\nfor (const item of items) {\n  const videos = item.json.items || [];\n\n  for (const video of videos) {\n    const stats = video.statistics || {};\n    const snippet = video.snippet || {};\n    const contentDetails = video.contentDetails || {};\n    const thumbnails = snippet.thumbnails || {};\n\n    const durationSeconds = parseIsoDurationToSeconds(contentDetails.duration);\n\n    out.push({\n      json: {\n        source: \"youtube\",\n        video_id: video.id,\n        title: snippet.title || \"\",\n        description: snippet.description || \"\",\n        channel_id: snippet.channelId || \"\",\n        channel_title: snippet.channelTitle || \"\",\n        published_at: snippet.publishedAt || \"\",\n        default_language: snippet.defaultLanguage || \"\",\n        default_audio_language: snippet.defaultAudioLanguage || \"\",\n        tags: snippet.tags || [],\n        category_id: snippet.categoryId || \"\",\n        duration_iso: contentDetails.duration || \"\",\n        duration_seconds: durationSeconds,\n        licensed_content: contentDetails.licensedContent ?? null,\n        definition: contentDetails.definition || \"\",\n        caption: contentDetails.caption || \"\",\n        view_count: Number(stats.viewCount || 0),\n        like_count: Number(stats.likeCount || 0),\n        comment_count: Number(stats.commentCount || 0),\n        thumbnail_url:\n          thumbnails.maxres?.url ||\n          thumbnails.standard?.url ||\n          thumbnails.high?.url ||\n          thumbnails.medium?.url ||\n          thumbnails.default?.url ||\n          \"\"\n      }\n    });\n  }\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        0
+      ],
+      "id": "678d5e5d-e501-476a-8bd2-084c9029c0e6",
+      "name": "Normalize YouTube Video Stats"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst now = new Date();\n\nfunction daysSince(dateString) {\n  const date = new Date(dateString);\n  if (Number.isNaN(date.getTime())) return null;\n\n  const diffMs = now.getTime() - date.getTime();\n  return Math.max(1, Math.floor(diffMs / (1000 * 60 * 60 * 24)));\n}\n\nfunction includesAny(text, words) {\n  const lower = String(text || \"\").toLowerCase();\n  return words.some((word) => lower.includes(word.toLowerCase()));\n}\n\nfunction countMatches(text, words) {\n  const lower = String(text || \"\").toLowerCase();\n  return words.reduce((count, word) => {\n    return lower.includes(word.toLowerCase()) ? count + 1 : count;\n  }, 0);\n}\n\nconst positiveKidsSignals = [\n  \"kids\",\n  \"children\",\n  \"baby\",\n  \"toddler\",\n  \"preschool\",\n  \"nursery\",\n  \"rhymes\",\n  \"cartoon\",\n  \"animation\",\n  \"animated\",\n  \"3d\",\n  \"shorts\",\n  \"learn\",\n  \"learning\",\n  \"fun\",\n  \"family\",\n  \"friendly\",\n  \"toy\",\n  \"colors\",\n  \"numbers\",\n  \"animals\",\n  \"song\",\n  \"story\",\n  \"adventure\",\n  \"good habits\",\n  \"sharing\",\n  \"caring\",\n  \"manners\"\n];\n\nconst trendMechanicSignals = [\n  \"what's inside\",\n  \"whose\",\n  \"guess\",\n  \"correct vs wrong\",\n  \"wrong\",\n  \"rules\",\n  \"challenge\",\n  \"game\",\n  \"learning game\",\n  \"transformation\",\n  \"secret\",\n  \"magic\",\n  \"surprise\",\n  \"colors\",\n  \"numbers\",\n  \"sharing\",\n  \"good habits\",\n  \"dress-up\",\n  \"face\",\n  \"animal\",\n  \"car\",\n  \"room\"\n];\n\nconst unsafeWords = [\n  \"war\",\n  \"iran\",\n  \"israel\",\n  \"hormuz\",\n  \"attack\",\n  \"weapon\",\n  \"gun\",\n  \"blood\",\n  \"death\",\n  \"dead\",\n  \"kill\",\n  \"killing\",\n  \"pregnancy\",\n  \"reproductive\",\n  \"ovulation\",\n  \"uterus\",\n  \"embryo\",\n  \"anatomy\",\n  \"root canal\",\n  \"dental\",\n  \"dentist\",\n  \"cavity\",\n  \"tooth\",\n  \"teeth\",\n  \"medical\",\n  \"surgery\",\n  \"disease\",\n  \"infection\",\n  \"toilet\",\n  \"potty\",\n  \"poop\"\n];\n\nconst brandWords = [\n  \"disney\",\n  \"pixar\",\n  \"roblox\",\n  \"minecraft\",\n  \"lego\",\n  \"dreamworks\",\n  \"cocomelon\",\n  \"baby shark\",\n  \"spiderman\",\n  \"spider-man\",\n  \"batman\",\n  \"superman\",\n  \"hulk\",\n  \"marvel\",\n  \"dc\",\n  \"pokemon\",\n  \"poppy playtime\",\n  \"rainbow friends\"\n];\n\nconst adultOrNonKidsWords = [\n  \"professor\",\n  \"engineer\",\n  \"politics\",\n  \"news\",\n  \"finance\",\n  \"stock\",\n  \"crypto\",\n  \"adult\",\n  \"dating\",\n  \"casino\",\n  \"alcohol\"\n];\n\nconst scored = items.map((item) => {\n  const v = item.json;\n\n  const joinedText = [\n    v.title,\n    v.description,\n    v.channel_title,\n    Array.isArray(v.tags) ? v.tags.join(\" \") : \"\"\n  ].join(\" \");\n\n  const ageDays = daysSince(v.published_at);\n  const viewCount = Number(v.view_count || 0);\n  const likeCount = Number(v.like_count || 0);\n  const commentCount = Number(v.comment_count || 0);\n  const durationSeconds = Number(v.duration_seconds || 0);\n\n  const viewsPerDay = ageDays ? viewCount / ageDays : 0;\n  const likeRate = viewCount > 0 ? likeCount / viewCount : 0;\n  const commentRate = viewCount > 0 ? commentCount / viewCount : 0;\n\n  const kidsSignalCount = countMatches(joinedText, positiveKidsSignals);\n  const trendMechanicCount = countMatches(joinedText, trendMechanicSignals);\n\n  const unsafeFlag = includesAny(joinedText, unsafeWords);\n  const brandFlag = includesAny(joinedText, brandWords);\n  const nonKidsFlag = includesAny(joinedText, adultOrNonKidsWords);\n\n  const durationFit =\n    durationSeconds >= 7 && durationSeconds <= 45\n      ? 1\n      : durationSeconds > 45 && durationSeconds <= 60\n        ? 0.5\n        : 0;\n\n  const isLikelyKids = kidsSignalCount >= 2;\n  const isLikelyTrendUseful = trendMechanicCount >= 1;\n\n  let score = 0;\n\n  score += Math.log10(viewCount + 1) * 18;\n  score += Math.log10(viewsPerDay + 1) * 28;\n  score += Math.min(likeRate * 1000, 20);\n  score += Math.min(commentRate * 2000, 10);\n  score += kidsSignalCount * 3;\n  score += trendMechanicCount * 6;\n  score += durationFit * 12;\n\n  if (unsafeFlag) score -= 55;\n  if (brandFlag) score -= 35;\n  if (nonKidsFlag) score -= 25;\n  if (!isLikelyKids) score -= 30;\n  if (!isLikelyTrendUseful) score -= 12;\n\n  const verdict =\n    unsafeFlag\n      ? \"reject_unsafe\"\n      : brandFlag\n        ? \"reject_brand_risk\"\n        : !isLikelyKids\n          ? \"reject_not_kids\"\n          : durationFit === 0\n            ? \"reject_duration\"\n            : score >= 130\n              ? \"strong_candidate\"\n              : score >= 95\n                ? \"candidate\"\n                : \"weak_candidate\";\n\n  return {\n    json: {\n      ...v,\n      age_days: ageDays,\n      views_per_day: Math.round(viewsPerDay),\n      like_rate: Number(likeRate.toFixed(6)),\n      comment_rate: Number(commentRate.toFixed(6)),\n      kids_signal_count: kidsSignalCount,\n      trend_mechanic_count: trendMechanicCount,\n      duration_fit: durationFit,\n      unsafe_flag: unsafeFlag,\n      brand_flag: brandFlag,\n      non_kids_flag: nonKidsFlag,\n      trend_score: Number(score.toFixed(2)),\n      verdict\n    }\n  };\n});\n\nscored.sort((a, b) => b.json.trend_score - a.json.trend_score);\n\nreturn scored;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        0
+      ],
+      "id": "2a2c18f5-78ca-4e44-8bd1-f296f3bd8b19",
+      "name": "Score Trend Candidates"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst allowedVerdicts = new Set([\n  \"strong_candidate\",\n  \"candidate\"\n]);\n\nconst candidates = items\n  .map((item) => item.json)\n  .filter((item) => allowedVerdicts.has(item.verdict))\n  .filter((item) => item.unsafe_flag !== true)\n  .filter((item) => item.brand_flag !== true)\n  .filter((item) => item.non_kids_flag !== true)\n  .filter((item) => Number(item.duration_seconds || 0) >= 7)\n  .filter((item) => Number(item.duration_seconds || 0) <= 45)\n  .sort((a, b) => Number(b.trend_score || 0) - Number(a.trend_score || 0));\n\nconst top = candidates.slice(0, 12);\n\nconst rejectedSummary = {\n  total_input: items.length,\n  total_allowed_candidates: candidates.length,\n  selected_count: top.length,\n  rejected_unsafe: items.filter((item) => item.json.unsafe_flag === true).length,\n  rejected_brand_risk: items.filter((item) => item.json.brand_flag === true).length,\n  rejected_non_kids: items.filter((item) => item.json.non_kids_flag === true).length\n};\n\nconst trendPatterns = {\n  recurring_mechanics: [\n    \"simple object transformation\",\n    \"guessing game\",\n    \"correct vs wrong comparison\",\n    \"sharing / good behavior lesson\",\n    \"colors and numbers learning\",\n    \"secret room or hidden object\",\n    \"vehicle or animal identification\",\n    \"fast visual problem then quick resolution\"\n  ],\n  pacing_notes: [\n    \"visual hook in the first 1–2 seconds\",\n    \"one clear action per scene\",\n    \"short loopable structure\",\n    \"bright object appears early\",\n    \"large readable character emotion\",\n    \"minimal plot complexity\"\n  ],\n  visual_notes: [\n    \"bright 3D cartoon look\",\n    \"toy-like objects and characters\",\n    \"high color contrast\",\n    \"clean simple backgrounds\",\n    \"large central object\",\n    \"safe soft comedy\",\n    \"expressive but non-scary faces\"\n  ],\n  safety_notes: [\n    \"do not copy known characters or franchises\",\n    \"avoid brand-like worlds and named IP\",\n    \"avoid medical, war, political, scary or adult contexts\",\n    \"avoid dangerous challenges\",\n    \"avoid text rendered inside generated images\"\n  ]\n};\n\nreturn [\n  {\n    json: {\n      status: \"trend_references_selected\",\n      source: \"youtube_trend_collector\",\n      selected_at: new Date().toISOString(),\n      rejected_summary: rejectedSummary,\n      trend_patterns: trendPatterns,\n      top_references: top.map((item, index) => ({\n        rank: index + 1,\n        video_id: item.video_id,\n        title: item.title,\n        channel_title: item.channel_title,\n        published_at: item.published_at,\n        duration_seconds: item.duration_seconds,\n        view_count: item.view_count,\n        views_per_day: item.views_per_day,\n        like_rate: item.like_rate,\n        trend_score: item.trend_score,\n        verdict: item.verdict,\n        kids_signal_count: item.kids_signal_count,\n        trend_mechanic_count: item.trend_mechanic_count,\n        thumbnail_url: item.thumbnail_url,\n        reference_url: `https://www.youtube.com/watch?v=${item.video_id}`\n      }))\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        0
+      ],
+      "id": "5f56c81f-f307-4c57-b76a-7ae551efadcf",
+      "name": "Select Top Trend References"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.5",
+          "mode": "list",
+          "cachedResultName": "GPT-5.5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.trend_research_prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "bbe14dbe-1cbd-4af8-a907-6933188a1bcd",
+      "name": "LLM Trend Research Analyst",
+      "credentials": {
+        "openAiApi": {
+          "id": "Z7Bop0DKJLVQi260",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        -208
+      ],
+      "id": "ce29f3ac-eafa-49b3-b689-ec29061d51cf",
+      "name": "Normalize Trend Brief1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst rawText =\n  item.output?.[0]?.content?.[0]?.text ||\n  item.output?.content?.[0]?.text ||\n  item.content?.[0]?.text ||\n  item.text ||\n  \"\";\n\nif (!rawText || typeof rawText !== \"string\") {\n  throw new Error(\"Trend brief text not found in LLM output\");\n}\n\nfunction extractJson(text) {\n  const cleaned = text\n    .replace(/^```json\\s*/i, \"\")\n    .replace(/^```\\s*/i, \"\")\n    .replace(/```$/i, \"\")\n    .trim();\n\n  try {\n    return JSON.parse(cleaned);\n  } catch (directError) {\n    const firstBrace = cleaned.indexOf(\"{\");\n    const lastBrace = cleaned.lastIndexOf(\"}\");\n\n    if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {\n      throw new Error(\"No JSON object found in trend brief text\");\n    }\n\n    const jsonCandidate = cleaned.slice(firstBrace, lastBrace + 1);\n    return JSON.parse(jsonCandidate);\n  }\n}\n\nconst parsed = extractJson(rawText);\n\nconst requiredFields = [\n  \"id\",\n  \"status\",\n  \"trend_brief_title\",\n  \"source_summary\",\n  \"trend_insights\",\n  \"recommended_content_patterns\",\n  \"selected_direction\",\n  \"brief_for_idea_parser\"\n];\n\nfor (const field of requiredFields) {\n  if (parsed[field] === undefined || parsed[field] === null) {\n    throw new Error(`Trend brief missing required field: ${field}`);\n  }\n}\n\nreturn [\n  {\n    json: {\n      id: parsed.id || \"idea_001\",\n      status: \"trend_brief_normalized\",\n      source: \"normalize-trend-brief\",\n      trend_brief_title: parsed.trend_brief_title || \"\",\n      source_summary: parsed.source_summary || {},\n      trend_insights: Array.isArray(parsed.trend_insights) ? parsed.trend_insights : [],\n      recommended_content_patterns: Array.isArray(parsed.recommended_content_patterns)\n        ? parsed.recommended_content_patterns\n        : [],\n      recommended_hook_types: Array.isArray(parsed.recommended_hook_types)\n        ? parsed.recommended_hook_types\n        : [],\n      recommended_story_mechanics: Array.isArray(parsed.recommended_story_mechanics)\n        ? parsed.recommended_story_mechanics\n        : [],\n      recommended_visual_mechanics: Array.isArray(parsed.recommended_visual_mechanics)\n        ? parsed.recommended_visual_mechanics\n        : [],\n      recommended_character_archetypes: Array.isArray(parsed.recommended_character_archetypes)\n        ? parsed.recommended_character_archetypes\n        : [],\n      recommended_pacing: parsed.recommended_pacing || {},\n      selected_direction: parsed.selected_direction || {},\n      safety_rules: Array.isArray(parsed.safety_rules) ? parsed.safety_rules : [],\n      brand_ip_exclusions: Array.isArray(parsed.brand_ip_exclusions)\n        ? parsed.brand_ip_exclusions\n        : [],\n      negative_generation_rules: Array.isArray(parsed.negative_generation_rules)\n        ? parsed.negative_generation_rules\n        : [],\n      brief_for_idea_parser: parsed.brief_for_idea_parser || \"\",\n      raw_trend_brief_json: parsed,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        0
+      ],
+      "id": "79fb92d3-7e9a-40f8-b971-f035b6ddd063",
+      "name": "Normalize Trend Brief"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst topReferences = item.top_references || [];\nconst trendPatterns = item.trend_patterns || {};\nconst rejectedSummary = item.rejected_summary || {};\n\nconst prompt = `\nYou are a Trend Research Analyst for a production system that generates short vertical kids videos.\n\nContext:\nWe are building a content-machine for English-language kids and family short-form content.\nYou are given YouTube candidates collected through API, filtered and sorted by trend_score.\n\nYour task:\n1. Extract abstract trend mechanics from the selected references.\n2. Do not copy exact videos, titles, channels, characters, names, logos, UI screens, or one-to-one recognizable scenes.\n3. Analyze popular kids short-form mechanics freely, including game-like, toy-like, animated, cinematic, challenge-based, transformation-based, reward-based and character-driven formats.\n4. Create a safe, original, English-language trend brief.\n5. Prepare a brief that can be passed to a script agent.\n\nImportant:\n- Do not treat the references as concepts to copy.\n- Use the sources only as analytical signals.\n- Do not output named franchises or brand names as creative directions.\n- The final concept must have original characters, original world design and original visual identity.\n- Do not make a generic cute story by default.\n- Focus on kids short-form retention: fast hook, simple mission, visual loop, repeatable mechanic, object transformation, reward, collectible logic, funny safe mistake, quick payoff.\n- Do not use text inside generated images or generated video. Any on-screen text will be added later in editing.\n- Return everything in English.\n- Return strict JSON only. No markdown. No comments before or after JSON.\n\nSelection data:\n${JSON.stringify(rejectedSummary, null, 2)}\n\nPreliminary patterns:\n${JSON.stringify(trendPatterns, null, 2)}\n\nTop selected YouTube candidates:\n${JSON.stringify(topReferences, null, 2)}\n\nReturn JSON strictly in this structure:\n\n{\n  \"id\": \"idea_001\",\n  \"status\": \"trend_brief_ready\",\n  \"trend_brief_title\": \"\",\n  \"source_summary\": {\n    \"total_input\": 0,\n    \"selected_references\": 0,\n    \"safe_candidate_count\": 0,\n    \"excluded_unsafe_count\": 0,\n    \"excluded_brand_risk_count\": 0,\n    \"main_observation\": \"\"\n  },\n  \"trend_insights\": [\n    {\n      \"insight\": \"\",\n      \"why_it_matters_for_retention\": \"\",\n      \"how_to_use_originally\": \"\"\n    }\n  ],\n  \"recommended_content_patterns\": [\n    {\n      \"pattern_name\": \"\",\n      \"description\": \"\",\n      \"retention_mechanic\": \"\",\n      \"safe_original_usage\": \"\"\n    }\n  ],\n  \"recommended_hook_types\": [],\n  \"recommended_story_mechanics\": [],\n  \"recommended_visual_mechanics\": [],\n  \"recommended_character_archetypes\": [],\n  \"recommended_pacing\": {\n    \"first_2_seconds\": \"\",\n    \"middle\": \"\",\n    \"ending\": \"\",\n    \"loop_logic\": \"\"\n  },\n  \"selected_direction\": {\n    \"content_pattern\": \"\",\n    \"hook_type\": \"\",\n    \"character_archetype\": \"\",\n    \"story_mechanic\": \"\",\n    \"visual_mechanic\": \"\",\n    \"reason\": \"\"\n  },\n  \"safety_rules\": [],\n  \"originality_rules\": [],\n  \"negative_generation_rules\": [],\n  \"brief_for_idea_parser\": \"\"\n}\n`;\n\nreturn [\n  {\n    json: {\n      id: \"idea_001\",\n      status: \"trend_research_prompt_ready\",\n      source: \"build-trend-research-prompt\",\n      trend_references: item,\n      trend_research_prompt: prompt.trim(),\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        0
+      ],
+      "id": "5f929492-3aa2-4f9a-8815-b939c7670c37",
+      "name": "Build Trend Research Prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst pipeline = item.video_pipeline_json;\n\nif (!pipeline) {\n  throw new Error(\"video_pipeline_json not found\");\n}\n\nconst scenes = pipeline.scenes || [];\n\nif (!Array.isArray(scenes) || scenes.length === 0) {\n  throw new Error(\"video_pipeline_json.scenes is empty or not an array\");\n}\n\n// Paced voiceover for ~18 seconds.\n// Written as short child-friendly phrases with natural pauses.\nconst voiceoverText = [\n  \"Whoa... a Glow Pod!\",\n  \"Look, two empty spots.\",\n  \"Try this color.\",\n  \"Oops... bubbly bounce!\",\n  \"Wait... Luma has one.\",\n  \"Let's share.\",\n  \"Together now...\",\n  \"Pop! It opened!\",\n  \"Hello, Bubble Critter!\",\n  \"Another Glow Pod?\",\n  \"Again?\"\n].join(\"\\n\");\n\nreturn [\n  {\n    json: {\n      id: pipeline.id || item.id || \"idea_001\",\n      status: \"voiceover_payload_ready\",\n      source: \"build-openai-voiceover-payload-paced\",\n      title: pipeline.title || \"\",\n      language: \"en\",\n      duration_seconds: pipeline.duration_seconds || 18,\n      voiceover_text: voiceoverText,\n      openai_tts_payload: {\n        model: \"gpt-4o-mini-tts\",\n        voice: \"shimmer\",\n        input: voiceoverText,\n        instructions:\n          \"Speak in warm, playful, clear English for a short animated kids video. Use natural pauses between lines. Keep the tone bright, soft and friendly. Do not sound robotic, harsh, scary, rushed, or overly babyish.\",\n        response_format: \"mp3\",\n        speed: 0.85\n      },\n      source_video_pipeline_json: pipeline,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        512
+      ],
+      "id": "9c17a544-4753-4a58-8f0e-8a5b13356fcd",
+      "name": "Build Voiceover Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/speech",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "=Authorization",
+              "value": "={{ 'Bearer ' + $env.OPENAI_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.openai_tts_payload) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -400,
+        512
+      ],
+      "id": "05eb91c2-a5c0-4bdf-aea3-4d4d1ce18ddf",
+      "name": "Create Voiceover Audio"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nif (!item.binary || !item.binary.data) {\n  throw new Error(\"Voiceover audio binary data not found\");\n}\n\nconst json = item.json || {};\nconst binaryData = item.binary.data;\n\nreturn [\n  {\n    json: {\n      id: json.id || \"idea_001\",\n      status: \"voiceover_ready\",\n      source: \"openai-tts\",\n      audio_format: \"mp3\",\n      binary_property: \"data\",\n      file_name: binaryData.fileName || `${json.id || \"idea_001\"}-voiceover.mp3`,\n      mime_type: binaryData.mimeType || \"audio/mpeg\",\n      file_size: binaryData.fileSize || null,\n      completed_at: new Date().toISOString()\n    },\n    binary: {\n      data: binaryData\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        512
+      ],
+      "id": "c3fb4436-77bf-49c8-b251-31255070b93f",
+      "name": "Normalize Voiceover Result"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst pipeline = item.video_pipeline_json;\n\nif (!pipeline) {\n  throw new Error(\"video_pipeline_json not found\");\n}\n\nconst scenes = pipeline.scenes || [];\n\nif (!Array.isArray(scenes) || scenes.length === 0) {\n  throw new Error(\"video_pipeline_json.scenes is empty or not an array\");\n}\n\nconst sceneLines = scenes.map((scene, index) => {\n  const sceneNumber = scene.scene || index + 1;\n\n  return [\n    `Frame ${sceneNumber}`,\n    `Block: ${scene.block || \"\"}`,\n    `Time: ${scene.duration || \"\"}`,\n    `Action: ${scene.content || \"\"}`,\n    `Visual: ${scene.visual || \"\"}`,\n    `Editing-layer caption only, not inside image: ${scene.on_screen_text || \"\"}`\n  ].join(\"\\n\");\n}).join(\"\\n\\n\");\n\nconst storyboardPrompt = `\nCreate one vertical 9:16 production storyboard sheet for a short kids animated video.\n\nThe storyboard sheet must contain exactly ${scenes.length} separate storyboard frames arranged in a clean 2-column by 3-row grid if there are 6 scenes.\nEach frame must show one scene from the same coherent animated episode.\nThe frames must feel like a professional pre-production storyboard for later image-to-video animation.\n\nIMPORTANT VISUAL CONTINUITY:\nUse the same main character in every frame.\nUse the same supporting character in every frame if present.\nUse the same central object or machine in every frame if present.\nUse the same toy-like 3D world, same material style, same lighting style, same color palette, same camera language.\nDo not redesign characters between frames.\nDo not change the world between frames.\nDo not introduce random new characters or unrelated props.\n\nSTYLE:\nBright toy-like 3D animation.\nRounded safe shapes.\nClean colorful kids short-form look.\nClear staging.\nLarge readable objects.\nOne main action per frame.\nExpressive but safe emotions.\nSoft cinematic lighting.\nProduction-ready keyframes for later motion animation.\nModern kids social-video visual rhythm.\n\nNO TEXT POLICY:\nDo not render any text, letters, numbers, captions, speech bubbles, subtitles, UI, logos, signs, watermarks or typography anywhere inside the image.\nDo not label the frames.\nDo not add frame numbers.\nAll captions will be added later in post-production.\n\nVIDEO TITLE:\n${pipeline.title || \"\"}\n\nVOICEOVER CONTEXT:\n${pipeline.voiceover || \"\"}\n\nSCENES:\n${sceneLines}\n\nOUTPUT:\nA single vertical storyboard sheet image.\nNo written labels.\nNo text.\nNo logos.\nNo watermark.\n`;\n\nreturn [\n  {\n    json: {\n      id: pipeline.id || item.id || \"idea_001\",\n      status: \"openai_storyboard_payload_ready\",\n      source: \"build-openai-storyboard-payload\",\n      title: String(pipeline.title || \"\").replace(/\\*\\*/g, \"\").trim(),\n      language: pipeline.language || \"en\",\n      duration_seconds: pipeline.duration_seconds || 18,\n      aspect_ratio: pipeline.aspect_ratio || \"9:16\",\n      scene_count: scenes.length,\n      storyboard_prompt: storyboardPrompt.trim(),\n      openai_image_payload: {\n        model: \"gpt-image-2\",\n        prompt: storyboardPrompt.trim(),\n        size: \"1024x1536\",\n        quality: \"medium\",\n        output_format: \"png\",\n        n: 1\n      },\n      source_video_pipeline_json: pipeline,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        240
+      ],
+      "id": "5a6d15d0-2529-4188-a82f-50b37a39733b",
+      "name": "Build OpenAI Storyboard Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $env.OPENAI_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.openai_image_payload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -16,
+        240
+      ],
+      "id": "75041bd8-fd64-41e4-9578-9207e943358a",
+      "name": "Create OpenAI Storyboard Image"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst b64 =\n  item.data?.[0]?.b64_json ||\n  item.output?.[0]?.b64_json ||\n  \"\";\n\nif (!b64) {\n  throw new Error(\"OpenAI storyboard image b64_json not found\");\n}\n\nconst buffer = Buffer.from(b64, \"base64\");\n\nreturn [\n  {\n    json: {\n      id: \"idea_001\",\n      status: \"storyboard_sheet_ready\",\n      source: \"openai-images\",\n      image_format: \"png\",\n      binary_property: \"data\",\n      file_name: \"idea_001-storyboard-sheet.png\",\n      completed_at: new Date().toISOString()\n    },\n    binary: {\n      data: await this.helpers.prepareBinaryData(\n        buffer,\n        \"idea_001-storyboard-sheet.png\",\n        \"image/png\"\n      )\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1856,
+        640
+      ],
+      "id": "b9e64e09-e6e5-4928-af00-ba8731891bec",
+      "name": "Normalize OpenAI Storyboard Image"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nif (!item.binary || !item.binary.data) {\n  throw new Error(\"Binary data not found\");\n}\n\nconst binaryData = item.binary.data;\nconst buffer = await this.helpers.getBinaryDataBuffer(0, \"data\");\n\nconst fs = require(\"fs\");\nconst path = require(\"path\");\n\nconst outputDir = \"/files/data/storyboards\";\nconst outputPath = path.join(outputDir, \"idea_001-storyboard-sheet.png\");\n\nfs.mkdirSync(outputDir, { recursive: true });\nfs.writeFileSync(outputPath, buffer);\n\nreturn [\n  {\n    json: {\n      id: item.json.id || \"idea_001\",\n      status: \"storyboard_sheet_saved\",\n      source: \"save-storyboard-sheet-via-code\",\n      file_path: outputPath,\n      local_file_path: \"data/storyboards/idea_001-storyboard-sheet.png\",\n      file_size: buffer.length,\n      completed_at: new Date().toISOString()\n    },\n    binary: {\n      data: binaryData\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1648,
+        640
+      ],
+      "id": "17393e56-5c42-4ec2-a465-c61beb4603a1",
+      "name": "Save Storyboard Sheet via Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst fs = require(\"fs\");\nconst path = require(\"path\");\nconst { PNG } = require(\"pngjs\");\n\nconst pipelineItem = $items(\"Build Video Pipeline JSON\")[0]?.json || {};\nconst pipeline = pipelineItem.video_pipeline_json;\n\nif (!pipeline) {\n  throw new Error(\"video_pipeline_json not found from Build Video Pipeline JSON\");\n}\n\nconst scenes = pipeline.scenes || [];\n\nif (!Array.isArray(scenes) || scenes.length === 0) {\n  throw new Error(\"video_pipeline_json.scenes is empty or not an array\");\n}\n\nconst inputPath = item.file_path || \"/files/data/storyboards/idea_001-storyboard-sheet.png\";\nconst outputDir = \"/files/data/storyboard-frames\";\n\nif (!fs.existsSync(inputPath)) {\n  throw new Error(`Storyboard sheet not found: ${inputPath}`);\n}\n\nfs.mkdirSync(outputDir, { recursive: true });\n\nconst buffer = fs.readFileSync(inputPath);\nconst sourcePng = PNG.sync.read(buffer);\n\nconst cols = 2;\nconst rows = 3;\n\nconst frameWidth = Math.floor(sourcePng.width / cols);\nconst frameHeight = Math.floor(sourcePng.height / rows);\n\nconst frames = [];\n\nlet sceneNumber = 1;\n\nfor (let row = 0; row < rows; row++) {\n  for (let col = 0; col < cols; col++) {\n    const framePng = new PNG({\n      width: frameWidth,\n      height: frameHeight\n    });\n\n    for (let y = 0; y < frameHeight; y++) {\n      for (let x = 0; x < frameWidth; x++) {\n        const sourceX = col * frameWidth + x;\n        const sourceY = row * frameHeight + y;\n\n        const sourceIdx = (sourcePng.width * sourceY + sourceX) << 2;\n        const targetIdx = (frameWidth * y + x) << 2;\n\n        framePng.data[targetIdx] = sourcePng.data[sourceIdx];\n        framePng.data[targetIdx + 1] = sourcePng.data[sourceIdx + 1];\n        framePng.data[targetIdx + 2] = sourcePng.data[sourceIdx + 2];\n        framePng.data[targetIdx + 3] = sourcePng.data[sourceIdx + 3];\n      }\n    }\n\n    const sceneId = `scene_${String(sceneNumber).padStart(2, \"0\")}`;\n    const outputPath = path.join(outputDir, `idea_001-${sceneId}.png`);\n    const scene = scenes[sceneNumber - 1] || {};\n\n    fs.writeFileSync(outputPath, PNG.sync.write(framePng));\n\n    const dopPrompt = [\n      `Animate this clean storyboard frame as scene ${sceneNumber} of a vertical 9:16 kids animated short.`,\n      `Scene block: ${scene.block || \"\"}.`,\n      `Scene action: ${scene.content || \"\"}.`,\n      `Visual direction: ${scene.visual || \"\"}.`,\n      `Keep the same characters, same world, same central object, same colors and same lighting from the storyboard frame.`,\n      `Use simple readable motion. One clear action only.`,\n      `Use subtle camera movement only if it helps the action.`,\n      `Do not add new characters, new objects, text, captions, logos, signs, UI, numbers, letters or watermarks.`,\n      `Keep the animation safe, bright, playful and family-friendly.`\n    ].filter(Boolean).join(\" \");\n\n    frames.push({\n      json: {\n        id: item.id || pipeline.id || \"idea_001\",\n        status: \"storyboard_frame_ready\",\n        source: \"split-storyboard-sheet-into-frames\",\n\n        title: String(pipeline.title || \"\").replace(/\\*\\*/g, \"\").trim(),\n        language: pipeline.language || \"en\",\n        duration_seconds: pipeline.duration_seconds || 18,\n        aspect_ratio: pipeline.aspect_ratio || \"9:16\",\n\n        scene_id: sceneId,\n        scene_number: sceneNumber,\n        block: scene.block || \"\",\n        duration: scene.duration || \"\",\n        content: scene.content || \"\",\n        visual: scene.visual || \"\",\n        on_screen_text: scene.on_screen_text || \"\",\n\n        dop_prompt: dopPrompt,\n\n        frame_file_path: outputPath,\n        local_frame_file_path: outputPath.replace(\"/files/data/\", \"data/\"),\n        frame_width: frameWidth,\n        frame_height: frameHeight,\n\n        source_video_pipeline_json: pipeline,\n        completed_at: new Date().toISOString()\n      }\n    });\n\n    sceneNumber++;\n  }\n}\n\nreturn frames;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1392,
+        720
+      ],
+      "id": "f5f7ccf5-7d7e-4968-94b7-c729ae933671",
+      "name": "Split Storyboard Sheet Into Frames"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.video_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        256,
+        720
+      ],
+      "id": "1d044fbf-099d-4485-9b73-d8aa4745a06b",
+      "name": "Download Scene Videos"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require(\"fs\");\nconst path = require(\"path\");\n\nconst items = $input.all();\nconst outputDir = \"/files/data/generated/scenes\";\n\nfs.mkdirSync(outputDir, { recursive: true });\n\nconst saved = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n\n  if (!item.binary || !item.binary.data) {\n    throw new Error(`Binary video data not found for item ${i + 1}`);\n  }\n\n  const sceneId = item.json.scene_id || `scene_${String(i + 1).padStart(2, \"0\")}`;\n  const outputPath = path.join(outputDir, `idea_001-${sceneId}.mp4`);\n\n  const buffer = await this.helpers.getBinaryDataBuffer(i, \"data\");\n  fs.writeFileSync(outputPath, buffer);\n\n  saved.push({\n    json: {\n      ...item.json,\n      status: \"scene_video_saved\",\n      scene_id: sceneId,\n      scene_number: item.json.scene_number || i + 1,\n      video_file_path: outputPath,\n      local_video_file_path: outputPath.replace(\"/files/data/\", \"data/\"),\n      file_size: buffer.length,\n      completed_at: new Date().toISOString()\n    }\n  });\n}\n\nreturn saved;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        720
+      ],
+      "id": "4db855e8-d53b-4d87-ab92-d13cb7d27be5",
+      "name": "Save Scene Videos"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require(\"fs\");\nconst path = require(\"path\");\n\nconst item = $input.first();\n\nif (!item.binary || !item.binary.data) {\n  throw new Error(\"Voiceover binary data not found\");\n}\n\nconst outputDir = \"/files/data/generated/audio\";\nfs.mkdirSync(outputDir, { recursive: true });\n\nconst outputPath = path.join(outputDir, \"idea_001-voiceover.mp3\");\n\nconst buffer = await this.helpers.getBinaryDataBuffer(0, \"data\");\nfs.writeFileSync(outputPath, buffer);\n\nreturn [\n  {\n    json: {\n      ...item.json,\n      status: \"voiceover_audio_saved\",\n      audio_file_path: outputPath,\n      local_audio_file_path: outputPath.replace(\"/files/data/\", \"data/\"),\n      file_size: buffer.length,\n      completed_at: new Date().toISOString()\n    },\n    binary: item.binary\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        512
+      ],
+      "id": "0ae56cc6-dfa5-4367-b97d-c991bc375097",
+      "name": "Save Voiceover Audio"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require(\"fs\");\nconst { execFileSync } = require(\"child_process\");\nconst ffprobe = require(\"ffprobe-static\");\n\nconst items = $input.all();\n\nif (!items.length) {\n  throw new Error(\"No saved scene video items found\");\n}\n\nreturn items.map((inputItem, index) => {\n  const item = inputItem.json;\n\n  const videoFilePath =\n    item.video_file_path ||\n    item.frame_file_path ||\n    `/files/data/generated/scenes/idea_001-scene_${String(index + 1).padStart(2, \"0\")}.mp4`;\n\n  if (!fs.existsSync(videoFilePath)) {\n    throw new Error(`Scene video file not found: ${videoFilePath}`);\n  }\n\n  let durationRaw = \"\";\n\n  try {\n    durationRaw = execFileSync(\n      ffprobe.path,\n      [\n        \"-v\",\n        \"error\",\n        \"-show_entries\",\n        \"format=duration\",\n        \"-of\",\n        \"default=noprint_wrappers=1:nokey=1\",\n        videoFilePath\n      ],\n      {\n        encoding: \"utf8\"\n      }\n    ).trim();\n  } catch (error) {\n    throw new Error(`ffprobe failed for ${videoFilePath}: ${error.message}`);\n  }\n\n  const actualDurationSeconds = Number(durationRaw);\n\n  if (!Number.isFinite(actualDurationSeconds) || actualDurationSeconds <= 0) {\n    throw new Error(`Invalid duration for ${videoFilePath}: ${durationRaw}`);\n  }\n\n  return {\n    json: {\n      ...item,\n\n      status: \"scene_duration_ready\",\n      source: \"probe-scene-durations\",\n\n      scene_id: item.scene_id || `scene_${String(index + 1).padStart(2, \"0\")}`,\n      scene_number: item.scene_number || index + 1,\n\n      video_file_path: videoFilePath,\n      local_video_file_path: videoFilePath.replace(\"/files/data/\", \"data/\"),\n\n      actual_duration_seconds: Number(actualDurationSeconds.toFixed(3)),\n      actual_duration_ms: Math.round(actualDurationSeconds * 1000),\n\n      completed_at: new Date().toISOString()\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        720
+      ],
+      "id": "4f74c38e-4f2c-49d0-a52a-13ed25bdbc7c",
+      "name": "Probe Scene Durations"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require(\"fs\");\nconst path = require(\"path\");\n\nconst items = $input.all();\nconst outputDir = \"/files/data/generated/audio/scenes\";\n\nfs.mkdirSync(outputDir, { recursive: true });\n\nconst saved = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n\n  if (!item.binary || !item.binary.data) {\n    throw new Error(`Voiceover binary data not found for item ${i + 1}`);\n  }\n\n  const sceneId = item.json.scene_id || `scene_${String(i + 1).padStart(2, \"0\")}`;\n  const outputPath = path.join(outputDir, `idea_001-${sceneId}-voiceover.mp3`);\n\n  const buffer = await this.helpers.getBinaryDataBuffer(i, \"data\");\n  fs.writeFileSync(outputPath, buffer);\n\n  saved.push({\n    json: {\n      ...item.json,\n      status: \"scene_voiceover_saved\",\n      scene_id: sceneId,\n      scene_number: item.json.scene_number || i + 1,\n      voiceover_file_path: outputPath,\n      local_voiceover_file_path: outputPath.replace(\"/files/data/\", \"data/\"),\n      file_size: buffer.length,\n      completed_at: new Date().toISOString()\n    },\n    binary: item.binary\n  });\n}\n\nreturn saved;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        544
+      ],
+      "id": "7faaaa25-92a5-46d5-be3f-15d2f65d7d66",
+      "name": "Save Scene Voiceovers"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nif (!items.length) {\n  throw new Error(\"No scene duration items found\");\n}\n\nconst scenes = items\n  .map((item, index) => {\n    const json = item.json;\n\n    return {\n      scene_id: json.scene_id || `scene_${String(index + 1).padStart(2, \"0\")}`,\n      scene_number: json.scene_number || index + 1,\n      block: json.block || \"\",\n      duration_label: json.duration || \"\",\n      actual_duration_seconds: json.actual_duration_seconds,\n      content: json.content || \"\",\n      visual: json.visual || \"\",\n      on_screen_text: json.on_screen_text || \"\"\n    };\n  })\n  .sort((a, b) => a.scene_number - b.scene_number);\n\nconst totalDuration = scenes.reduce((sum, scene) => {\n  return sum + Number(scene.actual_duration_seconds || 0);\n}, 0);\n\nconst prompt = `\nYou are a Voiceover Timing Writer for short vertical animated kids videos.\n\nYour task:\nCreate a concise, scene-by-scene English voiceover plan that fits the actual rendered video durations.\n\nImportant:\n- Return ONLY valid JSON.\n- Do not use markdown.\n- Do not explain anything.\n- Do not add comments.\n- Do not include trailing commas.\n- The voiceover must match the actual video scene durations.\n- Each scene must have one short voiceover line.\n- The line must be short enough to fit comfortably inside the scene.\n- Leave breathing room. Do not fill the whole scene with speech.\n- Use simple, warm, playful English for children and families.\n- Do not sound babyish.\n- Do not sound scary.\n- Do not mention brands or copyrighted characters.\n- Do not narrate every tiny visual detail.\n- Focus on emotion, action and curiosity.\n- Use natural pauses with punctuation like \"...\", but keep text short.\n- Avoid long sentences.\n- For scenes shorter than 3 seconds, use 2–5 words.\n- For scenes 3–5 seconds, use 4–8 words.\n- For scenes longer than 5 seconds, use 6–10 words.\n- Voiceover should feel synchronized with the action.\n\nReturn JSON in this exact shape:\n\n{\n  \"id\": \"${items[0].json.id || \"idea_001\"}\",\n  \"status\": \"voiceover_plan_ready\",\n  \"language\": \"en\",\n  \"total_duration_seconds\": ${Number(totalDuration.toFixed(3))},\n  \"voice_style\": \"warm, playful, clear, soft, curious\",\n  \"scenes\": [\n    {\n      \"scene_id\": \"scene_01\",\n      \"scene_number\": 1,\n      \"target_duration_seconds\": 3.2,\n      \"speech_start_offset_seconds\": 0.2,\n      \"speech_end_padding_seconds\": 0.4,\n      \"voiceover_text\": \"Whoa... what is this?\",\n      \"delivery\": \"curious and soft\"\n    }\n  ]\n}\n\nRendered scenes:\n${JSON.stringify(scenes, null, 2)}\n`.trim();\n\nreturn [\n  {\n    json: {\n      id: items[0].json.id || \"idea_001\",\n      status: \"voiceover_writer_prompt_ready\",\n      source: \"build-voiceover-writer-prompt\",\n      total_duration_seconds: Number(totalDuration.toFixed(3)),\n      scene_count: scenes.length,\n      scenes,\n      voiceover_writer_prompt: prompt,\n      source_scene_duration_items: items.map(item => item.json),\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        720
+      ],
+      "id": "8b7aecfb-4b22-4900-a564-bfbf0d8ea099",
+      "name": "Build Voiceover Writer Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.5",
+          "mode": "list",
+          "cachedResultName": "GPT-5.5"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.voiceover_writer_prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1056,
+        720
+      ],
+      "id": "e5e3c75e-e9d4-4695-a93a-4d77bd4ce343",
+      "name": "LLM Voiceover Writer",
+      "credentials": {
+        "openAiApi": {
+          "id": "Z7Bop0DKJLVQi260",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nfunction extractText(json) {\n  if (typeof json.text === \"string\") return json.text;\n\n  if (typeof json.output === \"string\") return json.output;\n\n  if (Array.isArray(json.output)) {\n    const textParts = [];\n\n    for (const part of json.output) {\n      if (typeof part.text === \"string\") {\n        textParts.push(part.text);\n      }\n\n      if (Array.isArray(part.content)) {\n        for (const contentPart of part.content) {\n          if (typeof contentPart.text === \"string\") {\n            textParts.push(contentPart.text);\n          }\n        }\n      }\n    }\n\n    if (textParts.length) return textParts.join(\"\\n\");\n  }\n\n  if (typeof json.message === \"string\") return json.message;\n\n  if (typeof json.content === \"string\") return json.content;\n\n  return JSON.stringify(json);\n}\n\nfunction cleanJsonText(text) {\n  return String(text)\n    .replace(/```json/gi, \"\")\n    .replace(/```/g, \"\")\n    .trim();\n}\n\nconst rawText = extractText(item);\nconst cleaned = cleanJsonText(rawText);\n\nlet plan;\n\ntry {\n  plan = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error(\n    `Failed to parse voiceover JSON: ${error.message}. Raw text: ${cleaned.slice(0, 1500)}`\n  );\n}\n\nif (!plan || typeof plan !== \"object\") {\n  throw new Error(\"voiceover plan is not an object\");\n}\n\nif (!Array.isArray(plan.scenes)) {\n  throw new Error(\"voiceover plan scenes array not found\");\n}\n\nif (!plan.scenes.length) {\n  throw new Error(\"voiceover plan scenes array is empty\");\n}\n\nconst normalizedScenes = plan.scenes.map((scene, index) => {\n  const sceneNumber = Number(scene.scene_number || index + 1);\n  const sceneId = scene.scene_id || `scene_${String(sceneNumber).padStart(2, \"0\")}`;\n\n  const targetDurationSeconds = Number(scene.target_duration_seconds || 0);\n\n  if (!Number.isFinite(targetDurationSeconds) || targetDurationSeconds <= 0) {\n    throw new Error(`Invalid target_duration_seconds for ${sceneId}`);\n  }\n\n  const voiceoverText = String(scene.voiceover_text || \"\").trim();\n\n  if (!voiceoverText) {\n    throw new Error(`voiceover_text is empty for ${sceneId}`);\n  }\n\n  return {\n    scene_id: sceneId,\n    scene_number: sceneNumber,\n    target_duration_seconds: Number(targetDurationSeconds.toFixed(3)),\n    speech_start_offset_seconds: Number(scene.speech_start_offset_seconds ?? 0.2),\n    speech_end_padding_seconds: Number(scene.speech_end_padding_seconds ?? 0.4),\n    voiceover_text: voiceoverText,\n    delivery: scene.delivery || \"warm, playful and clear\"\n  };\n});\n\nreturn [\n  {\n    json: {\n      id: plan.id || item.id || \"idea_001\",\n      status: \"voiceover_plan_ready\",\n      source: \"normalize-voiceover-plan\",\n      language: plan.language || \"en\",\n      total_duration_seconds: Number(plan.total_duration_seconds || 0),\n      voice_style: plan.voice_style || \"warm, playful, clear, soft, curious\",\n      scenes: normalizedScenes,\n      raw_voiceover_plan: plan,\n      raw_llm_output: item,\n      completed_at: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        720
+      ],
+      "id": "61f86fa1-da09-44f9-850d-1763169ee097",
+      "name": "Normalize Voiceover Plan"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nif (item.status !== \"voiceover_plan_ready\") {\n  throw new Error(`Voiceover plan is not ready. Current status: ${item.status}`);\n}\n\nif (!Array.isArray(item.scenes) || !item.scenes.length) {\n  throw new Error(\"voiceover plan scenes not found\");\n}\n\nreturn item.scenes.map((scene, index) => {\n  const sceneNumber = Number(scene.scene_number || index + 1);\n  const sceneId = scene.scene_id || `scene_${String(sceneNumber).padStart(2, \"0\")}`;\n\n  const targetDuration = Number(scene.target_duration_seconds || 0);\n  const startOffset = Number(scene.speech_start_offset_seconds ?? 0.2);\n  const endPadding = Number(scene.speech_end_padding_seconds ?? 0.4);\n\n  if (!Number.isFinite(targetDuration) || targetDuration <= 0) {\n    throw new Error(`Invalid target duration for ${sceneId}`);\n  }\n\n  const voiceoverText = String(scene.voiceover_text || \"\").trim();\n\n  if (!voiceoverText) {\n    throw new Error(`voiceover_text not found for ${sceneId}`);\n  }\n\n  const maxSpeechDuration = Math.max(0.8, targetDuration - startOffset - endPadding);\n\n  return {\n    json: {\n      id: item.id || \"idea_001\",\n      status: \"scene_voiceover_payload_ready\",\n      source: \"build-scene-voiceover-payloads\",\n\n      scene_id: sceneId,\n      scene_number: sceneNumber,\n\n      target_duration_seconds: Number(targetDuration.toFixed(3)),\n      speech_start_offset_seconds: Number(startOffset.toFixed(3)),\n      speech_end_padding_seconds: Number(endPadding.toFixed(3)),\n      max_speech_duration_seconds: Number(maxSpeechDuration.toFixed(3)),\n\n      voiceover_text: voiceoverText,\n      delivery: scene.delivery || \"warm, playful and clear\",\n\n      openai_tts_payload: {\n        model: \"gpt-4o-mini-tts\",\n        voice: \"shimmer\",\n        input: voiceoverText,\n        instructions: [\n          \"Speak this as one short line for a vertical animated kids video.\",\n          `Delivery: ${scene.delivery || \"warm, playful and clear\"}.`,\n          `The rendered scene duration is ${targetDuration.toFixed(2)} seconds.`,\n          `The spoken line should fit comfortably within about ${maxSpeechDuration.toFixed(2)} seconds.`,\n          \"Keep it natural, bright, soft, and friendly.\",\n          \"Do not rush, but keep the line compact.\",\n          \"Do not sound robotic, harsh, scary, or overly babyish.\"\n        ].join(\" \"),\n        response_format: \"mp3\",\n        speed: 0.95\n      },\n\n      source_voiceover_plan: item,\n      completed_at: new Date().toISOString()\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        720
+      ],
+      "id": "96102bd3-8e6a-4e2a-90f0-0f7435d46477",
+      "name": "Build Scene Voiceover Payloads"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1824,
+        720
+      ],
+      "id": "9f42b2c6-0c39-4dc8-bfb6-f8149f3e7ee4",
+      "name": "Create Scene Voiceovers"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Raw Idea Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Script Prompt": {
+      "main": [
+        [
+          {
+            "node": "LLM Script Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Script Generator": {
+      "main": [
+        [
+          {
+            "node": "Normalize Script Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Script Output": {
+      "main": [
+        [
+          {
+            "node": "Build Video Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Video Payload": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Output": {
+      "main": [
+        [
+          {
+            "node": "Build Video Pipeline JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Video Pipeline JSON": {
+      "main": [
+        [
+          {
+            "node": "Build OpenAI Storyboard Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Higgsfield Scene Packages": {
+      "main": [
+        [
+          {
+            "node": "Split Scene Packages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Scene Packages": {
+      "main": [
+        [
+          {
+            "node": "Build Soul Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Soul Image": {
+      "main": [
+        []
+      ]
+    },
+    "Wait for Soul Render": {
+      "main": [
+        [
+          {
+            "node": "Check Soul Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Soul Status": {
+      "main": [
+        []
+      ]
+    },
+    "Normalize Keyframe Result": {
+      "main": [
+        []
+      ]
+    },
+    "Build DoP Payload": {
+      "main": [
+        [
+          {
+            "node": "Create DoP Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create DoP Video": {
+      "main": [
+        [
+          {
+            "node": "Wait for DoP Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for DoP Render": {
+      "main": [
+        [
+          {
+            "node": "Check DoP Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DoP Status": {
+      "main": [
+        [
+          {
+            "node": "Normalize Scene Video Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Soul Payload": {
+      "main": [
+        []
+      ]
+    },
+    "Raw Idea Input": {
+      "main": [
+        [
+          {
+            "node": "Build Trend Source Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Idea Parser Prompt": {
+      "main": [
+        [
+          {
+            "node": "LLM Idea Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Idea Parser": {
+      "main": [
+        [
+          {
+            "node": "Normalize Parsed Idea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Parsed Idea": {
+      "main": [
+        [
+          {
+            "node": "Build Script Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Trend Source Queries": {
+      "main": [
+        [
+          {
+            "node": "YouTube Search Collector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Search Collector": {
+      "main": [
+        [
+          {
+            "node": "Normalize YouTube Search Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize YouTube Search Results": {
+      "main": [
+        [
+          {
+            "node": "Build YouTube Stats Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build YouTube Stats Requests": {
+      "main": [
+        [
+          {
+            "node": "YouTube Video Stats Collector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Video Stats Collector": {
+      "main": [
+        [
+          {
+            "node": "Normalize YouTube Video Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize YouTube Video Stats": {
+      "main": [
+        [
+          {
+            "node": "Score Trend Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Trend Candidates": {
+      "main": [
+        [
+          {
+            "node": "Select Top Trend References",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Top Trend References": {
+      "main": [
+        [
+          {
+            "node": "Build Trend Research Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Trend Research Analyst": {
+      "main": [
+        [
+          {
+            "node": "Normalize Trend Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Trend Brief1": {
+      "main": [
+        []
+      ]
+    },
+    "Normalize Trend Brief": {
+      "main": [
+        [
+          {
+            "node": "Build Idea Parser Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Trend Research Prompt": {
+      "main": [
+        [
+          {
+            "node": "LLM Trend Research Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Voiceover Payload": {
+      "main": [
+        [
+          {
+            "node": "Create Voiceover Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Voiceover Audio": {
+      "main": [
+        [
+          {
+            "node": "Normalize Voiceover Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Voiceover Result": {
+      "main": [
+        [
+          {
+            "node": "Save Voiceover Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build OpenAI Storyboard Payload": {
+      "main": [
+        [
+          {
+            "node": "Create OpenAI Storyboard Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create OpenAI Storyboard Image": {
+      "main": [
+        [
+          {
+            "node": "Normalize OpenAI Storyboard Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize OpenAI Storyboard Image": {
+      "main": [
+        [
+          {
+            "node": "Save Storyboard Sheet via Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Storyboard Sheet via Code": {
+      "main": [
+        [
+          {
+            "node": "Split Storyboard Sheet Into Frames",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Storyboard Sheet Into Frames": {
+      "main": [
+        [
+          {
+            "node": "Build DoP Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Scene Video Result": {
+      "main": [
+        [
+          {
+            "node": "Download Scene Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Scene Videos": {
+      "main": [
+        [
+          {
+            "node": "Save Scene Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Scene Videos": {
+      "main": [
+        [
+          {
+            "node": "Probe Scene Durations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Probe Scene Durations": {
+      "main": [
+        [
+          {
+            "node": "Build Voiceover Writer Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Voiceover Writer Prompt": {
+      "main": [
+        [
+          {
+            "node": "LLM Voiceover Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Voiceover Writer": {
+      "main": [
+        [
+          {
+            "node": "Normalize Voiceover Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Voiceover Plan": {
+      "main": [
+        [
+          {
+            "node": "Build Scene Voiceover Payloads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Scene Voiceover Payloads": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6eb4cdb9-50b7-4027-9865-fca5b1d73c06",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c07fc1c304b0c2a57fde1a95cf6c39e9592b414c3d7df715c37338517bec18e1"
+  },
+  "id": "cJ2T7qvJT1mkZnjD",
+  "tags": []
+}

@@ -1,6 +1,8 @@
 services:
   n8n:
-    image: n8nio/n8n:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: content-machine-n8n
     restart: unless-stopped
     ports:
@@ -16,6 +18,9 @@ services:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_RUNNERS_ENABLED=true
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_RESTRICT_FILE_ACCESS_TO=/files/data
+      - NODE_FUNCTION_ALLOW_BUILTIN=fs,path,child_process
+      - NODE_FUNCTION_ALLOW_EXTERNAL=pngjs,ffprobe-static
     volumes:
       - n8n_data:/home/node/.n8n
       - ../../data:/files/data
