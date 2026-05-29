@@ -344,74 +344,10 @@
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "8abd7f7c-5b54-4367-8b6e-6b34693dc1ba",
-              "name": "id",
-              "value": "idea_001",
-              "type": "string"
-            },
-            {
-              "id": "26c41e44-6372-4cf8-ae43-8ae27b97b659",
-              "name": "raw_idea",
-              "value": "A short animated kids video: a small cute helper enters a colorful toy-like world, finds a magical object, makes a funny mistake, chooses the correct object, and triggers a bright transformation. The format should feel trend-native for YouTube Shorts / Reels.",
-              "type": "string"
-            },
-            {
-              "id": "2ef2612f-44a8-42a6-9eab-6d1ed88889c8",
-              "name": "target_audience",
-              "value": "children and family audience",
-              "type": "string"
-            },
-            {
-              "id": "69361ee8-d631-4ac7-9472-705a83e1572c",
-              "name": "platform",
-              "value": "YouTube Shorts / Reels",
-              "type": "string"
-            },
-            {
-              "id": "fc8f2d5b-145a-467b-9b42-4c836eb147bd",
-              "name": "duration_seconds",
-              "value": "18",
-              "type": "string"
-            },
-            {
-              "id": "eda42698-879d-41a1-8330-a3867a9252e1",
-              "name": "trend_direction",
-              "value": "current kids short-form content: fast 3D/cartoon stories, visual guessing games, object transformations, funny safe mistakes, bright characters, repeatable episode structure, strong retention in the first seconds",
-              "type": "string"
-            },
-            {
-              "id": "d6cc0ba3-7e1c-48d2-aa0d-fc50b4b8f9f2",
-              "name": "research_goal",
-              "value": "identify trend-native mechanics for kids short-form content and convert them into a trend-replication brief optimized for recognizability, retention and repeatability",
-              "type": "string"
-            },
-            {
-              "id": "c7b2109b-bca4-4a56-b086-072ef479d4c3",
-              "name": "safety_constraints",
-              "value": "no violence, no fear, no dangerous challenges, no adult themes, no toxic behavior, no manipulative calls to action, safe for children and family viewing",
-              "type": "string"
-            },
-            {
-              "id": "6b732d63-a71a-4e58-af70-f6c88730eecd",
-              "name": "brand_constraints",
-              "value": "Analyze popular kids short-form mechanics freely, including game-like, toy-like, animated, cinematic, challenge-based, transformation-based and character-driven formats. Replicate the strongest trend mechanics, pacing, visual grammar, character archetypes, scene rhythm and payoff structure as closely as possible.",
-              "type": "string"
-            },
-            {
-              "id": "a7592b55-a99c-4845-aaba-66b1b6ee9a44",
-              "name": "output_goal",
-              "value": "produce a trend-informed English-language kids short-form brief that can be used for script, storyboard, keyframe prompts, video generation and voiceover",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const input = $input.first()?.json || {};\nconst now = new Date();\n\nconst runMode = input.run_mode || \"manual_test\";\nconst triggerSource = input.trigger_source || \"manual\";\nconst runId =\n  input.run_id ||\n  `${runMode}_${now.toISOString().replace(/[:.]/g, \"-\")}`;\n\nreturn [\n  {\n    json: {\n      ...input,\n\n      id: input.id || \"idea_001\",\n      run_mode: runMode,\n      trigger_source: triggerSource,\n      run_id: runId,\n\n      raw_idea:\n        input.raw_idea ||\n        \"A short animated kids video: a small cute helper enters a colorful toy-like world, finds a magical object, makes a funny mistake, chooses the correct object, and triggers a bright transformation. The format should feel trend-native for YouTube Shorts / Reels.\",\n\n      target_audience: input.target_audience || \"children and family audience\",\n      platform: input.platform || \"YouTube Shorts / Reels\",\n      duration_seconds: Number(input.duration_seconds || 18),\n\n      trend_direction:\n        input.trend_direction ||\n        \"current kids short-form content: fast 3D/cartoon stories, visual guessing games, object transformations, funny safe mistakes, bright characters, repeatable episode structure, strong retention in the first seconds\",\n\n      research_goal:\n        input.research_goal ||\n        \"identify trend-native mechanics for kids short-form content and convert them into a trend-replication brief optimized for recognizability, retention and repeatability\",\n\n      safety_constraints:\n        input.safety_constraints ||\n        \"no violence, no fear, no dangerous challenges, no adult themes, no toxic behavior, no manipulative calls to action, safe for children and family viewing\",\n\n      brand_constraints:\n        input.brand_constraints ||\n        \"Analyze popular kids short-form mechanics freely, including game-like, toy-like, animated, cinematic, challenge-based, transformation-based and character-driven formats. Replicate the strongest trend mechanics, pacing, visual grammar, character archetypes, scene rhythm and payoff structure as closely as possible.\",\n\n      output_goal:\n        input.output_goal ||\n        \"produce a trend-informed English-language kids short-form brief that can be used for script, storyboard, keyframe prompts, video generation and voiceover\",\n\n      input_context_ready_at: now.toISOString()\n    }\n  }\n];"
       },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         -2336,
         0
@@ -1050,6 +986,32 @@
       ],
       "id": "fb4db327-83fd-41cd-ad15-b9229dc65595",
       "name": "Daily Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\n\nreturn [\n  {\n    json: {\n      run_mode: \"manual_test\",\n      trigger_source: \"manual\",\n      run_id: `manual_${now.toISOString().replace(/[:.]/g, \"-\")}`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2464,
+        -240
+      ],
+      "id": "64492f5a-4643-48dd-b0df-a78bf34af82c",
+      "name": "Manual Run Context"
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\n\nreturn [\n  {\n    json: {\n      run_mode: \"daily_auto\",\n      trigger_source: \"schedule\",\n      run_id: `daily_${now.toISOString().replace(/[:.]/g, \"-\")}`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2464,
+        0
+      ],
+      "id": "205d965d-8c40-4a6f-bb80-380d27bb658c",
+      "name": "Scheduled Run Context"
     }
   ],
   "pinData": {},
@@ -1058,7 +1020,7 @@
       "main": [
         [
           {
-            "node": "Raw Idea Input",
+            "node": "Manual Run Context",
             "type": "main",
             "index": 0
           }
@@ -1569,6 +1531,28 @@
       ]
     },
     "Daily Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Scheduled Run Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Run Context": {
+      "main": [
+        [
+          {
+            "node": "Raw Idea Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scheduled Run Context": {
       "main": [
         [
           {
