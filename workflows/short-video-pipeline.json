@@ -1030,6 +1030,26 @@
       ],
       "id": "9f42b2c6-0c39-4dc8-bfb6-f8149f3e7ee4",
       "name": "Create Scene Voiceovers"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2576,
+        0
+      ],
+      "id": "fb4db327-83fd-41cd-ad15-b9229dc65595",
+      "name": "Daily Schedule Trigger"
     }
   ],
   "pinData": {},
@@ -1546,6 +1566,17 @@
     "Build Scene Voiceover Payloads": {
       "main": [
         []
+      ]
+    },
+    "Daily Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Raw Idea Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
