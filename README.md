@@ -377,6 +377,8 @@ Higgsfield integration fields are included for future work only. Soul Cinema is 
 
 `Build DoP Payload` still uses the current `image_url` mode by default, but now validates that every scene has layout, appearance, motion, and first/last keyframe planning before the paid DoP call. Scene 06 must keep same-world loop constraints, and appearance/motion contracts must include anti-clay, anti-plasticine, anti-melting, anti-blob-merging, no object morphing, no body merging, and no organic fusion constraints.
 
+OpenAI storyboard image generation uses a compact visual brief instead of dumping the full planning JSON into the image prompt. Full reference planning remains in `source_video_pipeline_json` for downstream DoP validation, while the image prompt keeps only the title, vertical sheet format, compact style/character/world summaries, negative visual rules, and six short panel briefs. The workflow records `storyboard_prompt_length`, target/absolute prompt limits, and fails before the image API call if compact prompt generation exceeds the absolute limit.
+
 ## Переменные окружения
 
 Пример переменных окружения:
