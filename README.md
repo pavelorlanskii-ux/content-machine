@@ -271,6 +271,8 @@ git switch main
 
 `Build DoP Payload` validates that `public_image_url` exists and, in runtime mode, points to `runtime/storyboard-frames` instead of stale `/main/data/storyboard-frames/` URLs.
 
+Storyboard frame PNGs must also be true vertical `9:16` images before they are sent to Higgsfield DoP. The workflow requests a vertical storyboard sheet, splits it into vertical `720x1280` scene frames, stores `frame_width`, `frame_height`, and `frame_aspect_ratio` on each item, and rejects square or non-vertical frames before paid DoP calls. This prevents Higgsfield from returning square scene videos caused by square input frames.
+
 For static/local fallback mode, you can still serve the `data` folder and expose it with a temporary localtunnel URL:
 
 ```sh
