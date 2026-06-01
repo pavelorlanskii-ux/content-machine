@@ -325,6 +325,29 @@ ffmpeg -y -i data/generated/scenes/idea_001-scene_01.mp4 -t 2.5 -c copy data/gen
 
 The Higgsfield DoP model and endpoint are configurable with `HIGGSFIELD_VIDEO_MODEL` and `HIGGSFIELD_DOP_ENDPOINT`; defaults remain `dop-turbo` and `/higgsfield-ai/dop/turbo`.
 
+### Background music bed
+
+The workflow can generate a primitive local background music bed before voiceover planning. `Generate Background Music Bed` creates a PCM WAV file with Node.js synthesis only; it does not call an external music API, download samples, or use copyrighted tracks. The default style is `simple-kids-toy-piano`, written as a quiet C-major toy/bell-like loop under voiceover.
+
+Defaults:
+
+```env
+BACKGROUND_MUSIC_ENABLED=true
+BACKGROUND_MUSIC_STYLE=simple-kids-toy-piano
+BACKGROUND_MUSIC_BPM=120
+BACKGROUND_MUSIC_VOLUME_DB=-26
+BACKGROUND_MUSIC_FADE_IN_SECONDS=0.2
+BACKGROUND_MUSIC_FADE_OUT_SECONDS=0.5
+```
+
+The generated file is saved as `data/generated/idea_001-background-music.wav` and scene items receive `background_music_file_path`, `background_music_duration_seconds`, `background_music_volume_db`, and `background_music_style`.
+
+Manual ffmpeg final-mix fallback:
+
+```sh
+ffmpeg -y -i data/generated/final/idea_001.mp4 -i data/generated/audio/idea_001-voiceover.mp3 -i data/generated/idea_001-background-music.wav -filter_complex "[2:a]volume=-26dB,afade=t=in:st=0:d=0.2,afade=t=out:st=17.5:d=0.5[music];[1:a][music]amix=inputs=2:duration=first:dropout_transition=0[a]" -map 0:v -map "[a]" -c:v copy -c:a aac -shortest data/generated/final/idea_001-mixed.mp4
+```
+
 ## Переменные окружения
 
 Пример переменных окружения:
@@ -350,6 +373,12 @@ PUBLIC_FRAME_PUBLISH_MODE=github-runtime-branch
 PUBLIC_FRAME_REPO=pavelorlanskii-ux/content-machine
 PUBLIC_FRAME_BRANCH=runtime/storyboard-frames
 PUBLIC_FRAME_PUBLIC_BASE_URL=https://raw.githubusercontent.com/pavelorlanskii-ux/content-machine/runtime/storyboard-frames/data
+BACKGROUND_MUSIC_ENABLED=true
+BACKGROUND_MUSIC_STYLE=simple-kids-toy-piano
+BACKGROUND_MUSIC_BPM=120
+BACKGROUND_MUSIC_VOLUME_DB=-26
+BACKGROUND_MUSIC_FADE_IN_SECONDS=0.2
+BACKGROUND_MUSIC_FADE_OUT_SECONDS=0.5
 ```
 
 `PEXELS_API_KEY` нужен, потому что Short Video Maker берёт фоновые видео из Pexels.

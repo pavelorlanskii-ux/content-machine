@@ -889,7 +889,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        880,
+        1088,
         720
       ],
       "id": "8b7aecfb-4b22-4900-a564-bfbf0d8ea099",
@@ -1102,6 +1102,19 @@
       ],
       "id": "69342af9-1178-4d77-ac2f-ff2c98eb1590",
       "name": "Publish Storyboard Frames"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require(\"fs\");\nconst path = require(\"path\");\n\nconst items = $input.all();\n\nif (!items.length) {\n  throw new Error(\"No scene duration items found for background music generation\");\n}\n\nconst enabled = String($env.BACKGROUND_MUSIC_ENABLED ?? \"true\").trim().toLowerCase() !== \"false\";\nconst style = String($env.BACKGROUND_MUSIC_STYLE || \"simple-kids-toy-piano\").trim();\nconst bpm = Number($env.BACKGROUND_MUSIC_BPM || 120);\nconst volumeDb = Number($env.BACKGROUND_MUSIC_VOLUME_DB || -26);\nconst fadeInSeconds = Number($env.BACKGROUND_MUSIC_FADE_IN_SECONDS || 0.2);\nconst fadeOutSeconds = Number($env.BACKGROUND_MUSIC_FADE_OUT_SECONDS || 0.5);\nconst sampleRate = 44100;\nconst id = items[0].json.id || \"idea_001\";\nconst outputDir = \"/files/data/generated\";\nconst outputPath = path.join(outputDir, `${id}-background-music.wav`);\n\nfunction durationFromItems() {\n  const summed = items.reduce((sum, inputItem) => {\n    const item = inputItem.json;\n    const value =\n      Number(item.trimmed_duration_seconds || 0) ||\n      Number(item.target_scene_duration_seconds || 0) ||\n      Number(item.actual_duration_seconds || 0) ||\n      Number(item.max_scene_duration_seconds || 0);\n    return sum + (Number.isFinite(value) && value > 0 ? value : 0);\n  }, 0);\n\n  if (summed > 0) return summed;\n\n  const fallback = Number(items[0].json.duration_seconds || items[0].json.source_video_pipeline_json?.duration_seconds || 18);\n  return Number.isFinite(fallback) && fallback > 0 ? fallback : 18;\n}\n\nfunction midiToFrequency(midi) {\n  return 440 * Math.pow(2, (midi - 69) / 12);\n}\n\nfunction writeWav(filePath, samples) {\n  const dataSize = samples.length * 2;\n  const buffer = Buffer.alloc(44 + dataSize);\n\n  buffer.write(\"RIFF\", 0);\n  buffer.writeUInt32LE(36 + dataSize, 4);\n  buffer.write(\"WAVE\", 8);\n  buffer.write(\"fmt \", 12);\n  buffer.writeUInt32LE(16, 16);\n  buffer.writeUInt16LE(1, 20);\n  buffer.writeUInt16LE(1, 22);\n  buffer.writeUInt32LE(sampleRate, 24);\n  buffer.writeUInt32LE(sampleRate * 2, 28);\n  buffer.writeUInt16LE(2, 32);\n  buffer.writeUInt16LE(16, 34);\n  buffer.write(\"data\", 36);\n  buffer.writeUInt32LE(dataSize, 40);\n\n  for (let i = 0; i < samples.length; i++) {\n    const clamped = Math.max(-1, Math.min(1, samples[i]));\n    buffer.writeInt16LE(Math.round(clamped * 32767), 44 + i * 2);\n  }\n\n  fs.writeFileSync(filePath, buffer);\n}\n\nfunction noteEnvelope(localTime, noteDuration) {\n  const attack = Math.min(0.025, noteDuration * 0.2);\n  const release = Math.min(0.16, noteDuration * 0.45);\n\n  if (localTime < attack) return localTime / attack;\n  if (localTime > noteDuration - release) return Math.max(0, (noteDuration - localTime) / release);\n  return Math.exp(-2.6 * (localTime - attack));\n}\n\nfunction synthToyTone(frequency, localTime, noteDuration) {\n  const envelope = noteEnvelope(localTime, noteDuration);\n  const fundamental = Math.sin(2 * Math.PI * frequency * localTime);\n  const bell = 0.45 * Math.sin(2 * Math.PI * frequency * 2 * localTime);\n  const chime = 0.2 * Math.sin(2 * Math.PI * frequency * 3 * localTime);\n  return (fundamental + bell + chime) * envelope;\n}\n\nfunction generateMusic(durationSeconds) {\n  const safeBpm = Number.isFinite(bpm) && bpm > 40 ? bpm : 120;\n  const beatSeconds = 60 / safeBpm;\n  const stepSeconds = beatSeconds / 2;\n  const melody = [60, 64, 67, 72, 67, 64, 62, 67, 65, 69, 72, 76, 72, 69, 67, 64];\n  const harmony = [48, 55, 52, 55];\n  const totalSamples = Math.ceil(durationSeconds * sampleRate);\n  const samples = new Float32Array(totalSamples);\n  const gain = Math.pow(10, volumeDb / 20);\n  const fadeInSamples = Math.max(1, Math.floor(Math.max(0, fadeInSeconds) * sampleRate));\n  const fadeOutSamples = Math.max(1, Math.floor(Math.max(0, fadeOutSeconds) * sampleRate));\n\n  for (let i = 0; i < totalSamples; i++) {\n    const time = i / sampleRate;\n    const melodyStep = Math.floor(time / stepSeconds) % melody.length;\n    const melodyLocal = time % stepSeconds;\n    const harmonyStep = Math.floor(time / (beatSeconds * 2)) % harmony.length;\n    const harmonyLocal = time % (beatSeconds * 2);\n    const melodyTone = synthToyTone(midiToFrequency(melody[melodyStep]), melodyLocal, stepSeconds);\n    const harmonyTone = 0.28 * synthToyTone(midiToFrequency(harmony[harmonyStep]), harmonyLocal, beatSeconds * 2);\n    let fade = 1;\n\n    if (i < fadeInSamples) fade *= i / fadeInSamples;\n    if (i > totalSamples - fadeOutSamples) fade *= Math.max(0, (totalSamples - i) / fadeOutSamples);\n\n    samples[i] = (melodyTone * 0.48 + harmonyTone * 0.32) * gain * fade;\n  }\n\n  return samples;\n}\n\nif (!enabled) {\n  return items.map((inputItem) => ({\n    json: {\n      ...inputItem.json,\n      background_music_enabled: false,\n      background_music_file_path: null,\n      background_music_duration_seconds: null,\n      background_music_volume_db: volumeDb,\n      background_music_style: style\n    }\n  }));\n}\n\nif (!Number.isFinite(volumeDb) || volumeDb > -6) {\n  throw new Error(`BACKGROUND_MUSIC_VOLUME_DB must be a safe quiet value, got ${$env.BACKGROUND_MUSIC_VOLUME_DB || volumeDb}`);\n}\n\nconst baseDuration = durationFromItems();\nconst durationSeconds = Number((baseDuration + 0.5).toFixed(3));\n\ntry {\n  fs.mkdirSync(outputDir, { recursive: true });\n  writeWav(outputPath, generateMusic(durationSeconds));\n} catch (error) {\n  throw new Error(`Background music generation failed: ${error.message}`);\n}\n\nif (!fs.existsSync(outputPath)) {\n  throw new Error(`Background music file was not created: ${outputPath}`);\n}\n\nreturn items.map((inputItem) => ({\n  json: {\n    ...inputItem.json,\n    background_music_enabled: true,\n    background_music_file_path: outputPath,\n    local_background_music_file_path: outputPath.replace(\"/files/data/\", \"data/\"),\n    background_music_duration_seconds: durationSeconds,\n    background_music_volume_db: volumeDb,\n    background_music_style: style,\n    background_music_bpm: bpm,\n    background_music_fade_in_seconds: fadeInSeconds,\n    background_music_fade_out_seconds: fadeOutSeconds,\n    background_music_source: \"local-nodejs-pcm-wav\"\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        720
+      ],
+      "id": "b0aaf8a6-7c6d-4a18-9812-c8eb0672a0bc",
+      "name": "Generate Background Music Bed"
     }
   ],
   "pinData": {},
@@ -1575,7 +1588,7 @@
       "main": [
         [
           {
-            "node": "Build Voiceover Writer Prompt",
+            "node": "Generate Background Music Bed",
             "type": "main",
             "index": 0
           }
@@ -1704,6 +1717,17 @@
         [
           {
             "node": "Build DoP Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Background Music Bed": {
+      "main": [
+        [
+          {
+            "node": "Build Voiceover Writer Prompt",
             "type": "main",
             "index": 0
           }
