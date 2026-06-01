@@ -348,6 +348,35 @@ Manual ffmpeg final-mix fallback:
 ffmpeg -y -i data/generated/final/idea_001.mp4 -i data/generated/audio/idea_001-voiceover.mp3 -i data/generated/idea_001-background-music.wav -filter_complex "[2:a]volume=-26dB,afade=t=in:st=0:d=0.2,afade=t=out:st=17.5:d=0.5[music];[1:a][music]amix=inputs=2:duration=first:dropout_transition=0[a]" -map 0:v -map "[a]" -c:v copy -c:a aac -shortest data/generated/final/idea_001-mixed.mp4
 ```
 
+### Reference asset planning
+
+The workflow now creates planning-only reference asset metadata before paid video generation. It does not call Higgsfield Soul ID, custom reference, Soul Cinema, or any other external API, and it does not generate reference images yet.
+
+The creative/video pipeline JSON includes:
+
+- `reference_asset_plan`
+- `character_reference_assets`
+- `object_reference_assets`
+- `world_reference_assets`
+- `style_reference_asset`
+- `shot_layout_contracts`
+- `appearance_contracts`
+- `motion_contracts`
+- `first_last_keyframe_plan`
+
+Character, object, world, and style references help lock identity, object category, material style, background continuity, and quality floor before future high-quality video generation. Planned file paths use:
+
+```text
+data/references/{idea_id}/characters/{character_id}.png
+data/references/{idea_id}/objects/{object_id}.png
+data/references/{idea_id}/world/{world_id}.png
+data/references/{idea_id}/style/style_reference.png
+```
+
+Higgsfield integration fields are included for future work only. Soul Cinema is treated as a future reference image/keyframe generation layer with a partially confirmed schema: `prompt`, `aspect_ratio`, `resolution`, `batch_size`, `enhance_prompt`, and `seed`. Soul ID/custom reference creation remains disabled because the create request schemas still need confirmation. The planning metadata records endpoints such as `/v1/custom-references`, `/v1/custom-references/list`, `/soul-id`, and `/higgsfield-ai/soul/cinema`, with `higgsfield_reference_integration_status: planning_only`.
+
+`Build DoP Payload` still uses the current `image_url` mode by default, but now validates that every scene has layout, appearance, motion, and first/last keyframe planning before the paid DoP call. Scene 06 must keep same-world loop constraints, and appearance/motion contracts must include anti-clay, anti-plasticine, anti-melting, anti-blob-merging, no object morphing, no body merging, and no organic fusion constraints.
+
 ## Переменные окружения
 
 Пример переменных окружения:
