@@ -214,6 +214,35 @@ services/short-video-maker/docker-compose.yml
 - Kokoro TTS для озвучки;
 - Remotion и ffmpeg для сборки mp4.
 
+### Public storyboard frames for n8n
+
+Higgsfield DoP needs a public URL for storyboard frames that n8n saves in `data/storyboard-frames`.
+For local runs, serve the `data` folder and expose it with a temporary localtunnel URL:
+
+```sh
+python3 -m http.server 8080 --bind 127.0.0.1 --directory data
+```
+
+In another terminal:
+
+```sh
+npx localtunnel --port 8080 --local-host 127.0.0.1
+```
+
+Put the generated URL in local `.env`:
+
+```env
+PUBLIC_FILES_BASE_URL=https://your-current-url.loca.lt
+```
+
+If n8n is already running, restart or recreate the container so it receives the new environment value:
+
+```sh
+docker compose -f services/n8n/docker-compose.yml up -d --force-recreate
+```
+
+Then import `workflows/short-video-pipeline.json` into n8n. Temporary tunnel URLs should only live in local `.env` and must not be committed.
+
 ## Переменные окружения
 
 Пример переменных окружения:
@@ -232,6 +261,7 @@ OPENAI_MODEL=gpt-4.1-mini
 PEXELS_API_KEY=your_pexels_api_key_here
 SHORT_VIDEO_MAKER_URL=http://localhost:3123
 POSTIZ_URL=http://localhost:5000
+PUBLIC_FILES_BASE_URL=https://your-current-url.loca.lt
 ```
 
 `PEXELS_API_KEY` нужен, потому что Short Video Maker берёт фоновые видео из Pexels.
