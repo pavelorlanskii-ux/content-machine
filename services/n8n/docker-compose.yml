@@ -21,6 +21,7 @@ services:
       - N8N_RESTRICT_FILE_ACCESS_TO=/files/data
       - NODE_FUNCTION_ALLOW_BUILTIN=fs,path,child_process
       - NODE_FUNCTION_ALLOW_EXTERNAL=pngjs,ffprobe-static
+      - PUBLIC_FILES_BASE_URL=${PUBLIC_FILES_BASE_URL}
     volumes:
       - n8n_data:/home/node/.n8n
       - ../../data:/files/data
