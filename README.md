@@ -309,6 +309,22 @@ Higgsfield DoP scene renders are polled until all scenes are completed before th
 
 The creative pipeline now selects one trend format, then carries character, object, and world bibles through the storyboard and DoP stages to preserve continuity. Each scene includes a validated scene contract before DoP calls, and DoP prompts are written as short motion contracts to reduce object morphing, object substitution, and identity drift.
 
+### Video quality controls
+
+Storyboard and DoP prompts now require premium crisp 3D kids animation with clean geometry, stable object shapes, polished non-melting surfaces, crisp facial details, and clean mobile-short composition. `Build DoP Payload` rejects prompts before paid Higgsfield calls if required anti-artifact controls are missing, including no claymation, no plasticine, no melting, no object morphing, and no organic merging.
+
+Wrong puzzle pieces must stay separate: incorrect objects may approach, bump, wobble, or bounce away, but they must not attach or merge with Pip. Scene 06 loop hints must stay in the same toy world with no doors, windows, interior room, portal, glass panel, or cut to another location.
+
+Scene items carry duration targets for 18-second pacing: `2.5, 2.5, 3.0, 3.0, 4.0, 3.0` seconds. `Probe Scene Durations` marks `scene_trim_required` when an output exceeds its target, and records `target_scene_duration_seconds`, `max_scene_duration_seconds`, `trimmed_scene_video_file_path`, and `trimmed_duration_seconds` fields for a trimming step.
+
+Manual local trimming fallback:
+
+```sh
+ffmpeg -y -i data/generated/scenes/idea_001-scene_01.mp4 -t 2.5 -c copy data/generated/scenes/idea_001-scene_01-trimmed.mp4
+```
+
+The Higgsfield DoP model and endpoint are configurable with `HIGGSFIELD_VIDEO_MODEL` and `HIGGSFIELD_DOP_ENDPOINT`; defaults remain `dop-turbo` and `/higgsfield-ai/dop/turbo`.
+
 ## Переменные окружения
 
 Пример переменных окружения:
@@ -327,6 +343,8 @@ OPENAI_MODEL=gpt-4.1-mini
 PEXELS_API_KEY=your_pexels_api_key_here
 SHORT_VIDEO_MAKER_URL=http://localhost:3123
 POSTIZ_URL=http://localhost:5000
+HIGGSFIELD_VIDEO_MODEL=dop-turbo
+HIGGSFIELD_DOP_ENDPOINT=/higgsfield-ai/dop/turbo
 PUBLIC_FILES_BASE_URL=https://your-current-url.loca.lt
 PUBLIC_FRAME_PUBLISH_MODE=github-runtime-branch
 PUBLIC_FRAME_REPO=pavelorlanskii-ux/content-machine
