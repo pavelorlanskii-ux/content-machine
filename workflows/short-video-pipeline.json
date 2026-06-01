@@ -331,13 +331,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const statusItems = $input.all();\nconst sourceItems = $items(\"Build DoP Payload\");\n\nif (!statusItems.length) {\n  throw new Error(\"No DoP status items found\");\n}\n\nif (!sourceItems.length) {\n  throw new Error(\"No source DoP payload items found\");\n}\n\nif (statusItems.length !== sourceItems.length) {\n  throw new Error(`Items count mismatch: statusItems=${statusItems.length}, sourceItems=${sourceItems.length}`);\n}\n\nreturn statusItems.map((statusItem, index) => {\n  const status = statusItem.json;\n  const source = sourceItems[index].json;\n\n  if (status.status !== \"completed\") {\n    throw new Error(`DoP render is not completed for item ${index + 1}. Status: ${status.status}`);\n  }\n\n  const videoUrl = status.video?.url;\n\n  if (!videoUrl) {\n    throw new Error(`Completed DoP render has no video.url for item ${index + 1}`);\n  }\n\n  return {\n    json: {\n      id: source.id || \"idea_001\",\n      status: \"scene_video_ready\",\n      source: \"normalize-scene-video-result\",\n\n      title: source.title || \"\",\n      language: source.language || \"en\",\n      duration_seconds: source.duration_seconds || 18,\n      aspect_ratio: source.aspect_ratio || \"9:16\",\n\n      scene_id: source.scene_id,\n      scene_number: source.scene_number,\n      block: source.block || \"\",\n      duration: source.duration || \"\",\n      content: source.content || \"\",\n      visual: source.visual || \"\",\n      on_screen_text: source.on_screen_text || \"\",\n\n      provider: \"higgsfield\",\n      model: \"dop-turbo\",\n\n      request_id: status.request_id,\n      status_url: status.status_url,\n      cancel_url: status.cancel_url,\n\n      frame_file_path: source.frame_file_path,\n      local_frame_file_path: source.local_frame_file_path,\n      public_image_url: source.public_image_url,\n\n      dop_prompt: source.dop_prompt,\n      video_url: videoUrl,\n\n      source_dop_status: status,\n      source_dop_payload: source,\n\n      completed_at: new Date().toISOString()\n    }\n  };\n});"
+        "jsCode": "const statusItems = $input.all();\nconst sourceItems = $items(\"Build DoP Payload\");\n\nif (!statusItems.length) {\n  throw new Error(\"No completed DoP status items found\");\n}\n\nif (!sourceItems.length) {\n  throw new Error(\"No source DoP payload items found\");\n}\n\nif (statusItems.length !== sourceItems.length) {\n  throw new Error(`Items count mismatch: statusItems=${statusItems.length}, sourceItems=${sourceItems.length}`);\n}\n\nreturn statusItems.map((statusItem, index) => {\n  const status = statusItem.json;\n  const source = status.source_dop_payload || sourceItems[index].json;\n\n  if (status.status !== \"completed\") {\n    throw new Error(`Normalize Scene Video Result received a non-completed DoP item for ${status.scene_id || source.scene_id || `item ${index + 1}`}. Status: ${status.status}`);\n  }\n\n  const videoUrl = status.video?.url;\n\n  if (!videoUrl) {\n    throw new Error(`Completed DoP render has no video.url for item ${index + 1}`);\n  }\n\n  return {\n    json: {\n      id: source.id || \"idea_001\",\n      status: \"scene_video_ready\",\n      source: \"normalize-scene-video-result\",\n\n      title: source.title || \"\",\n      language: source.language || \"en\",\n      duration_seconds: source.duration_seconds || 18,\n      aspect_ratio: source.aspect_ratio || \"9:16\",\n\n      scene_id: source.scene_id,\n      scene_number: source.scene_number,\n      block: source.block || \"\",\n      duration: source.duration || \"\",\n      content: source.content || \"\",\n      visual: source.visual || \"\",\n      on_screen_text: source.on_screen_text || \"\",\n\n      provider: \"higgsfield\",\n      model: \"dop-turbo\",\n\n      request_id: status.request_id,\n      status_url: status.status_url,\n      cancel_url: status.cancel_url,\n\n      frame_file_path: source.frame_file_path,\n      local_frame_file_path: source.local_frame_file_path,\n      public_image_url: source.public_image_url || status.public_image_url,\n\n      dop_prompt: source.dop_prompt || status.dop_prompt,\n      video_url: videoUrl,\n\n      dop_poll_attempt: status.dop_poll_attempt,\n      dop_poll_max_attempts: status.dop_poll_max_attempts,\n      dop_poll_wait_seconds: status.dop_poll_wait_seconds,\n      dop_poll_pending_count: status.dop_poll_pending_count,\n      dop_poll_completed_count: status.dop_poll_completed_count,\n\n      source_dop_status: status,\n      source_dop_payload: source,\n\n      completed_at: new Date().toISOString()\n    }\n  };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        48,
-        720
+        464,
+        640
       ],
       "id": "14bd1c5f-ec8b-4345-869c-f067bc2a8258",
       "name": "Normalize Scene Video Result"
@@ -1042,6 +1042,53 @@
       ],
       "id": "205d965d-8c40-4a6f-bb80-380d27bb658c",
       "name": "Scheduled Run Context"
+    },
+    {
+      "id": "fd5c83b4-b8c4-49db-a63b-b5df1f902777",
+      "name": "Evaluate DoP Status Poll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        720
+      ],
+      "parameters": {
+        "jsCode": "const statusItems = $input.all();\nconst pollInputItems = $items(\"Wait for DoP Render\");\nconst sourceItems = $items(\"Build DoP Payload\");\n\nconst maxAttempts = 10;\nconst waitSeconds = 60;\n\nif (!statusItems.length) {\n  throw new Error(\"No DoP status items found\");\n}\n\nif (statusItems.length !== pollInputItems.length) {\n  throw new Error(`DoP poll item count mismatch: statusItems=${statusItems.length}, pollInputItems=${pollInputItems.length}`);\n}\n\nif (statusItems.length !== sourceItems.length) {\n  throw new Error(`DoP source item count mismatch: statusItems=${statusItems.length}, sourceItems=${sourceItems.length}`);\n}\n\nconst mergedItems = statusItems.map((statusItem, index) => {\n  const status = statusItem.json;\n  const previous = pollInputItems[index].json;\n  const source = sourceItems[index].json;\n  const attempt = Number(previous.dop_poll_attempt || 0) + 1;\n\n  return {\n    json: {\n      ...previous,\n      ...status,\n\n      request_id: status.request_id || previous.request_id,\n      status_url: status.status_url || previous.status_url,\n      cancel_url: status.cancel_url || previous.cancel_url,\n      video: status.video || previous.video,\n\n      scene_id: source.scene_id || previous.scene_id,\n      scene_number: source.scene_number || previous.scene_number,\n      public_image_url: source.public_image_url || previous.public_image_url,\n      dop_prompt: source.dop_prompt || previous.dop_prompt,\n      source_dop_payload: source,\n\n      dop_poll_attempt: attempt,\n      dop_poll_max_attempts: maxAttempts,\n      dop_poll_wait_seconds: waitSeconds\n    }\n  };\n});\n\nconst completedItems = mergedItems.filter((item) => item.json.status === \"completed\");\nconst pendingItems = mergedItems.filter((item) => [\"queued\", \"in_progress\"].includes(item.json.status));\nconst failedItems = mergedItems.filter((item) => ![\"completed\", \"queued\", \"in_progress\"].includes(item.json.status));\n\nif (failedItems.length) {\n  const diagnostics = failedItems\n    .map((item) => {\n      const json = item.json;\n      return `${json.scene_id || \"unknown_scene\"} / ${json.request_id || \"unknown_request\"} / ${json.status || \"unknown_status\"}`;\n    })\n    .join(\"; \");\n\n  throw new Error(`DoP render failed or returned an unsupported status: ${diagnostics}`);\n}\n\nconst pendingCount = pendingItems.length;\nconst completedCount = completedItems.length;\nconst allCompleted = pendingCount === 0;\n\nconst annotatedItems = mergedItems.map((item) => ({\n  json: {\n    ...item.json,\n    dop_poll_pending_count: pendingCount,\n    dop_poll_completed_count: completedCount,\n    dop_poll_all_completed: allCompleted\n  }\n}));\n\nif (!allCompleted) {\n  const attempt = Math.max(...annotatedItems.map((item) => Number(item.json.dop_poll_attempt || 0)));\n\n  if (attempt >= maxAttempts) {\n    const diagnostics = pendingItems\n      .map((item) => {\n        const json = item.json;\n        return `${json.scene_id || \"unknown_scene\"} / ${json.request_id || \"unknown_request\"} / ${json.status || \"unknown_status\"}`;\n      })\n      .join(\"; \");\n\n    throw new Error(`DoP renders did not complete after ${maxAttempts} attempts (${maxAttempts * waitSeconds} seconds). Pending: ${diagnostics}`);\n  }\n}\n\nreturn annotatedItems;"
+      }
+    },
+    {
+      "id": "846e312d-41f2-423c-a182-6a3c9d9f258a",
+      "name": "All DoP Renders Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        720
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c85617ca-a34b-42c6-a44f-1b3fdba2c0da",
+              "leftValue": "={{ $json.dop_poll_all_completed }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
     }
   ],
   "pinData": {},
@@ -1208,7 +1255,7 @@
       "main": [
         [
           {
-            "node": "Normalize Scene Video Result",
+            "node": "Evaluate DoP Status Poll",
             "type": "main",
             "index": 0
           }
@@ -1604,6 +1651,35 @@
         [
           {
             "node": "Save Scene Voiceovers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate DoP Status Poll": {
+      "main": [
+        [
+          {
+            "node": "All DoP Renders Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All DoP Renders Complete?": {
+      "main": [
+        [
+          {
+            "node": "Normalize Scene Video Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait for DoP Render",
             "type": "main",
             "index": 0
           }

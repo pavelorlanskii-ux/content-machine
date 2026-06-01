@@ -243,6 +243,10 @@ docker compose -f services/n8n/docker-compose.yml up -d --force-recreate
 
 Then import `workflows/short-video-pipeline.json` into n8n. Temporary tunnel URLs should only live in local `.env` and must not be committed.
 
+### Higgsfield DoP status polling
+
+Higgsfield DoP scene renders are polled until all scenes are completed before the workflow normalizes scene video results. The default polling window is 10 attempts with a 60 second wait between attempts. If any scene is still queued or in progress after the max attempts, the workflow fails with pending scene diagnostics that include scene ID, request ID, and status.
+
 ## Переменные окружения
 
 Пример переменных окружения:
