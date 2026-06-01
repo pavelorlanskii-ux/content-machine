@@ -22,6 +22,10 @@ services:
       - NODE_FUNCTION_ALLOW_BUILTIN=fs,path,child_process
       - NODE_FUNCTION_ALLOW_EXTERNAL=pngjs,ffprobe-static
       - PUBLIC_FILES_BASE_URL=${PUBLIC_FILES_BASE_URL}
+      - PUBLIC_FRAME_PUBLISH_MODE=${PUBLIC_FRAME_PUBLISH_MODE}
+      - PUBLIC_FRAME_REPO=${PUBLIC_FRAME_REPO}
+      - PUBLIC_FRAME_BRANCH=${PUBLIC_FRAME_BRANCH}
+      - PUBLIC_FRAME_PUBLIC_BASE_URL=${PUBLIC_FRAME_PUBLIC_BASE_URL}
     volumes:
       - n8n_data:/home/node/.n8n
       - ../../data:/files/data
