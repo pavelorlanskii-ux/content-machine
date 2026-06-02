@@ -333,6 +333,8 @@ The Higgsfield DoP model and endpoint are configurable with `HIGGSFIELD_VIDEO_MO
 
 The workflow can generate a primitive local background music bed before voiceover planning. `Generate Background Music Bed` creates a PCM WAV file with Node.js synthesis only; it does not call an external music API, download samples, or use copyrighted tracks. The default style is `simple-kids-toy-piano`, written as a quiet C-major toy/bell-like loop under voiceover.
 
+Voiceover defaults to `soft-kids-narrator`: warm, playful, gentle, bright, and easy for preschool children to follow. The style uses OpenAI TTS instructions and a default speed of `0.92` when supported, while avoiding real-person, celebrity, brand mascot, or known-character imitation. It does not require voice cloning or claim to generate an actual child voice.
+
 Defaults:
 
 ```env
@@ -398,6 +400,10 @@ OpenAI storyboard image generation uses a compact visual brief instead of dumpin
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4.1-mini
+VOICEOVER_STYLE=soft-kids-narrator
+VOICEOVER_SPEED=0.92
+VOICEOVER_TONE=warm-playful-bright
+VOICEOVER_DELIVERY=gentle-clear-playful
 PEXELS_API_KEY=your_pexels_api_key_here
 SHORT_VIDEO_MAKER_URL=http://localhost:3123
 POSTIZ_URL=http://localhost:5000
