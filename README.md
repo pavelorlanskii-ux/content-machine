@@ -317,6 +317,8 @@ Wrong puzzle pieces must stay separate: incorrect objects may approach, bump, wo
 
 Scene contract fallback repair runs before paid DoP validation. If the LLM returns an incomplete `scene_06` contract, the workflow repairs it as a strict same-world loop/reset scene with the same picnic tabletop, toy traffic-light gate, open lunchbox, no doors, no windows, no portals, no new location, no text, and required anti-artifact/object-interaction rules. `Build DoP Payload` still validates the repaired contract strictly and fails before the paid call if required fields are missing.
 
+Scene 06 reference planning fallback also runs before paid DoP validation. `Build Video Pipeline JSON` repairs missing scene 06 reference planning for newly generated pipeline JSON, and `Build DoP Payload` defensively repairs stale n8n execution items by synchronizing `scene_contract`, `source_video_pipeline_json.scenes`, `reference_asset_plan`, `shot_layout_contracts`, `appearance_contracts`, `motion_contracts`, and `first_last_keyframe_plan` before strict validation. This fix does not call external APIs and does not weaken validation; missing public frame URLs, stale `main/data` frame URLs, non-vertical frames, or unrecoverable planning gaps still fail before paid DoP calls.
+
 Scene items carry duration targets for 18-second pacing: `2.5, 2.5, 3.0, 3.0, 4.0, 3.0` seconds. `Probe Scene Durations` marks `scene_trim_required` when an output exceeds its target, and records `target_scene_duration_seconds`, `max_scene_duration_seconds`, `trimmed_scene_video_file_path`, and `trimmed_duration_seconds` fields for a trimming step.
 
 Manual local trimming fallback:
