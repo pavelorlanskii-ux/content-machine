@@ -315,6 +315,8 @@ Storyboard and DoP prompts now require premium crisp 3D kids animation with clea
 
 Wrong puzzle pieces must stay separate: incorrect objects may approach, bump, wobble, or bounce away, but they must not attach or merge with Pip. Scene 06 loop hints must stay in the same toy world with no doors, windows, interior room, portal, glass panel, or cut to another location.
 
+Scene contract fallback repair runs before paid DoP validation. If the LLM returns an incomplete `scene_06` contract, the workflow repairs it as a strict same-world loop/reset scene with the same picnic tabletop, toy traffic-light gate, open lunchbox, no doors, no windows, no portals, no new location, no text, and required anti-artifact/object-interaction rules. `Build DoP Payload` still validates the repaired contract strictly and fails before the paid call if required fields are missing.
+
 Scene items carry duration targets for 18-second pacing: `2.5, 2.5, 3.0, 3.0, 4.0, 3.0` seconds. `Probe Scene Durations` marks `scene_trim_required` when an output exceeds its target, and records `target_scene_duration_seconds`, `max_scene_duration_seconds`, `trimmed_scene_video_file_path`, and `trimmed_duration_seconds` fields for a trimming step.
 
 Manual local trimming fallback:
