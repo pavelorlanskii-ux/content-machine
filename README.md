@@ -319,6 +319,8 @@ Scene contract fallback repair runs before paid DoP validation. If the LLM retur
 
 Scene 06 reference planning fallback also runs before paid DoP validation. `Build Video Pipeline JSON` repairs missing scene 06 reference planning for newly generated pipeline JSON, and `Build DoP Payload` defensively repairs stale n8n execution items by synchronizing `scene_contract`, `source_video_pipeline_json.scenes`, `reference_asset_plan`, `shot_layout_contracts`, `appearance_contracts`, `motion_contracts`, and `first_last_keyframe_plan` before strict validation. This fix does not call external APIs and does not weaken validation; missing public frame URLs, stale `main/data` frame URLs, non-vertical frames, or unrecoverable planning gaps still fail before paid DoP calls.
 
+`first_last_keyframe_plan` fallback now runs for every scene before paid DoP validation. The repair is planning-only: it creates stable future keyframe paths under `data/keyframes/{idea_id}/`, but it does not generate keyframe image files or call external APIs. Validation remains strict and still fails before DoP if required first/last frame descriptions or preservation/forbidden-frame rules are missing after repair.
+
 Scene items carry duration targets for 18-second pacing: `2.5, 2.5, 3.0, 3.0, 4.0, 3.0` seconds. `Probe Scene Durations` marks `scene_trim_required` when an output exceeds its target, and records `target_scene_duration_seconds`, `max_scene_duration_seconds`, `trimmed_scene_video_file_path`, and `trimmed_duration_seconds` fields for a trimming step.
 
 Manual local trimming fallback:
